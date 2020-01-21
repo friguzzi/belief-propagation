@@ -4,7 +4,7 @@
 <head>
     <title>Bayesian Network</title>
 
-    <script type="text/javascript" src="vis/dist/vis.js"></script>
+    <script type="text/javascript" src="vis.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src = "https://code.jquery.com/jquery-1.10.2.js"></script>
     <script src = "https://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
@@ -20,6 +20,7 @@
 <body>
     <image onclick="window.location.href = 'http://visjs.org/';" class="image_logo" src="logo.png">
     <div class="btn-group">
+        <button type="button" id="button_open_file" class="btn btn-primary"><i class="glyphicon glyphicon-file"></i>     Open File</button>
         <button type="button" id="button_create_node" class="btn btn-primary"><i class="glyphicon glyphicon-plus"></i>     Create Node</button>
         <button type="button" id="button_create_arc" class="btn btn-primary"><i class="glyphicon glyphicon-sort"></i>     Create Arc</button>
         <button type="button" id="button_delete_node" class="btn btn-primary"><i class="glyphicon glyphicon-remove-circle"></i>     Delete Node</button>
@@ -711,7 +712,7 @@
         
         //risolvo la query
         $("#compute_query").click(function() {
-        
+       		console.log(network);
         });
         
     //////////////////////////////////////////////////////////////////////////////////////////
