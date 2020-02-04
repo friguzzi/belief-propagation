@@ -7,114 +7,125 @@
     <title>Bayesian Network</title>
 
     <link href="vis.min.css" rel="stylesheet" type="text/css" />
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="bootstrap.min.css"/>
       <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
     <link href = "https://code.jquery.com/ui/1.10.4/themes/ui-lightness/jquery-ui.css" rel = "stylesheet">
     <link rel="stylesheet" href="./index.css">
-    <link rel="ICON" href= "logo.png">
     
 </head>
 
 <body>
-    <image onclick="window.location.href = 'http://visjs.org/';" class="image_logo" src="logo.png">
-    <div class="btn-group">
-        <button type="button" id="button_open_file" class="btn btn-primary" onclick="button_open_file_hidden.click()"><i class="fas fa-file-code"></i>     Open File</button>
-        <input type="file" id="button_open_file_hidden" class="d-none">
-        <button type="button" id="button_create_node" class="btn btn-primary"><i class="fas fa-plus-circle"></i>     Create Node</button>
-        <button type="button" id="button_create_arc" class="btn btn-primary"><i class="fas fa-arrow-down"></i>     Create Arc</button>
-        <button type="button" id="button_delete_node" class="btn btn-primary"><i class="fas fa-trash-alt"></i>     Delete Node</button>
-        <button type="button" id="button_delete_arc" class="btn btn-primary"><i class="fas fa-minus"></i>     Delete Arc</button>
-        <button type="button" id="button_set_properties" class="btn btn-primary"><i class="fas fa-edit"></i>      Set Properties</button>
-        <button type="button" id="button_probability_table" class="btn btn-primary"><i class="fas fa-list-alt"></i>      Probability Table</button>
-        <button type="button" id="button_query" class="btn btn-primary"><i class="fas fa-question"></i>     Query</button>        
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="btn-group my-4">
+                <button type="button" id="button_open_file" class="btn btn-primary" onclick="button_open_file_hidden.click()"><i class="fas fa-file-code"></i> Open File</button>
+                <input type="file" id="button_open_file_hidden" class="d-none">
+                <button type="button" id="button_create_node" class="btn btn-primary"><i class="fas fa-plus-circle"></i> Create Node</button>
+                <button type="button" id="button_create_arc" class="btn btn-primary"><i class="fas fa-arrow-down"></i> Create Arc</button>
+                <button type="button" id="button_delete_node" class="btn btn-primary"><i class="fas fa-trash-alt"></i> Delete Node</button>
+                <button type="button" id="button_delete_arc" class="btn btn-primary"><i class="fas fa-minus"></i> Delete Arc</button>
+                <button type="button" id="button_set_properties" class="btn btn-primary"><i class="fas fa-edit"></i> Set Properties</button>
+                <button type="button" id="button_probability_table" class="btn btn-primary"><i class="fas fa-list-alt"></i> Probability Table</button>
+            </div>
+        </div>
+        <div class="row justify-content-center mx-4">
+            <div class="col-6">
+                <div id="graph"></div>
+            </div>
+            <div class="col-6">
+                <div id="table">
+                    <h3 id="name_choice">Select a button please...</h3>
+                    
+                    <div id="div_create_nodes">
+                        <div class="form-group">
+                            <label class="form-label">Node name:</label>
+                            <input id="label" type="text" class="form-control" placeholder="Node 0" value="Node 0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Domain:</label>
+                            <input id="domain" type="text" class="form-control" placeholder="T,F" value="T,F">
+                        </div>
+                        <button id="save_create_nodes" type="button" class="btn btn-success">Create</button>
+                    </div>
+                    
+                    <div id="div_create_arc">
+                        <div class="form-group">
+                            <label class="form-label">From:</label>
+                            <input id="from" type="text" class="form-control" placeholder="Node 0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">To:</label>
+                            <input id="to" type="text" class="form-control" placeholder="Node 1">
+                        </div>
+                        <button id="save_create_arc" type="button" class="btn btn-success">Create</button>
+                    </div>
+                    
+                    <div id="div_delete_node">
+                        <div class="form-group">
+                            <label class="form-label">Node name:</label>
+                            <input id="delete_node" type="text" class="form-control" placeholder="Node 0">
+                        </div>
+                        <button id="save_delete_node" type="button" class="btn btn-success">Delete</button>
+                    </div>
+                    
+                    <div id="div_delete_arc">
+                        <div class="form-group">
+                            <label class="form-label">From:</label>
+                            <input id="delete_from" type="text" class="form-control" placeholder="Node 0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">To:</label>
+                            <input id="delete_to" type="text" class="form-control" placeholder="Node 1">
+                        </div>
+                        <button id="save_delete_arc" type="button" class="btn btn-success">Delete</button>
+                    </div>
+                    
+                    <div id="div_set_properties">
+                        <div class="form-group">
+                            <label class="form-label">Node name:</label>
+                            <input id="label_selected" type="text" class="form-control" placeholder="Node 0">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Domain:</label>
+                            <input id="domain_selected" type="text" class="form-control" placeholder="T,F">
+                        </div>
+                        <button id="save_set_properties" type="button" class="btn btn-success">Change</button>
+                    </div>
+                    
+                    <div id="div_probability_table">
+                    </div>
+                    
+                    <div id="div_query">
+                        <div class="form-group">
+                            <label class="form-label">Query:</label>
+                            <input id="delete_from" type="text" class="form-control" placeholder="P(A|B'C)">
+                        </div>
+                        <button id="compute_query" type="button" class="btn btn-success">Compute</button>
+                    </div>
+
+                    
+                    <div id="error_dialog" class="alert alert-danger mt-3">
+                        <strong>Error!</strong> Data not inserted correctly.
+                    </div>
+                    <div id="success" class="alert alert-success mt-3">
+                        <strong>Success!</strong> The operation was performed correctly.
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    
+    <!--
+    <image onclick="window.location.href = 'http://visjs.org/';" class="image_logo" src="logo.png">
+    -->
+   
+    <!-- 
     <a id="help" data-toggle="modal" data-target="#myModal" class="btn btn-circle-sm btn-primary"><span class="fas fa-question-circle"></span> </a>
     <h8 class="help_text">help</h8>
     <div id="help_message" class="alert alert-info fade in">
         
     </div>
-    
-    <div id="graph"></div>
+    -->
    
-    <div id="table">
-        <h3 id="name_choice">select button please..</h3>
-        
-        <div id="div_create_nodes">
-            <div class="form-group">
-                <label class="form-label">Node name:</label>
-                <input id="label" type="text" class="form-control" placeholder="Node 0" value="Node 0">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Domain:</label>
-                <input id="domain" type="text" class="form-control" placeholder="T,F" value="T,F">
-            </div>
-            <button id="save_create_nodes" type="button" class="btn btn-success">Create</button>
-        </div>
-        
-        <div id="div_create_arc">
-            <div class="form-group">
-                <label class="form-label">From:</label>
-                <input id="from" type="text" class="form-control" placeholder="Node 0">
-            </div>
-            <div class="form-group">
-                <label class="form-label">To:</label>
-                <input id="to" type="text" class="form-control" placeholder="Node 1">
-            </div>
-            <button id="save_create_arc" type="button" class="btn btn-success">Create</button>
-        </div>
-        
-        <div id="div_delete_node">
-            <div class="form-group">
-                <label class="form-label">Node name:</label>
-                <input id="delete_node" type="text" class="form-control" placeholder="Node 0">
-            </div>
-            <button id="save_delete_node" type="button" class="btn btn-success">Delete</button>
-        </div>
-        
-        <div id="div_delete_arc">
-            <div class="form-group">
-                <label class="form-label">From:</label>
-                <input id="delete_from" type="text" class="form-control" placeholder="Node 0">
-            </div>
-            <div class="form-group">
-                <label class="form-label">To:</label>
-                <input id="delete_to" type="text" class="form-control" placeholder="Node 1">
-            </div>
-            <button id="save_delete_arc" type="button" class="btn btn-success">Delete</button>
-        </div>
-        
-        <div id="div_set_properties">
-            <div class="form-group">
-                <label class="form-label">Node name:</label>
-                <input id="label_selected" type="text" class="form-control" placeholder="Node 0">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Domain:</label>
-                <input id="domain_selected" type="text" class="form-control" placeholder="T,F">
-            </div>
-            <button id="save_set_properties" type="button" class="btn btn-success">Change</button>
-        </div>
-        
-        <div id="div_probability_table">
-        </div>
-        
-        <div id="div_query">
-            <div class="form-group">
-                <label class="form-label">Query:</label>
-                <input id="delete_from" type="text" class="form-control" placeholder="P(A|B'C)">
-            </div>
-            <button id="compute_query" type="button" class="btn btn-success">Compute</button>
-        </div>
-
-        
-        <div id="error_dialog" class="alert alert-danger">
-            <strong>Error!</strong> Data not inserted correctly.
-        </div>
-        <div id="success" class="alert alert-success">
-            <strong>Success!</strong> The operation was performed correctly.
-        </div>
-    </div>
 
     <script type="text/javascript" src="vis.min.js"></script>
     <script
@@ -1013,7 +1024,7 @@
 	        
 	        //CREAZIONE DINAMICA DELLA TABELLA
 	        
-	        var table = $("<table id='dynamic_table' class='table table-striped table-bordered table-hover table-condensed small'>");
+	        var table = $("<table id='dynamic_table' class='table table-hover mt-3'>");
 
 	        $("#div_probability_table").append(table);
 
@@ -1025,7 +1036,7 @@
 	        var column_table_head=column_table;
 	        
 	        //parte dinamica
-	        html = "<thead id='thead'><tr>";
+	        html = "<thead id='thead'><tr class='table-primary text-center'>";
 	        
 	        var el = parseInt(node_id_selected[0].toString());
 	        var my_domain = getDomainFromId(node_id_selected).toString().split(',');
@@ -1039,6 +1050,7 @@
 	                var str = getLabelFromId(id_selected) + " ("+my_domain[j]+")";
 	                html = html + "<th><strong>" + str + "</strong></th>";
 	            }
+                html = html + "<th><strong></strong></th>";
 	        }
 	        else
 	        {
@@ -1064,6 +1076,7 @@
 	                    html = html + "<th><strong>" + str + "</strong></th>";
 	                    flag=1;
 	                }
+                    html = html + "<th><strong></strong></th>";
 	            }
 	            else
 	            {
@@ -1091,6 +1104,7 @@
 	                        index++;
 	                    }
 	                }
+                    html = html + "<th><strong></strong></th>";
 	            }
 	        }
 	            
@@ -1100,6 +1114,8 @@
 	        ///
 	        /// Table body (row)
 	        ///
+
+            // TODO: risolvere bug splitting dominio
 
 	        var row_table_body=row_table;
 	        var column_table_body=column_table;
@@ -1173,27 +1189,27 @@
 	        //se sono indipendenti, ho una sola riga!
 	        if(row_table_body === 1)
 	        {
-	            html = "<tr>";
+	            html = "<tr class='table-dark text-center'>";
 	            for (var fieldCount = 0; fieldCount < column_table_body; fieldCount++) {
 	                if(fieldCount > 1)
-	                    var str = "<input value=0.0>";
+	                    var str = "<input style='text-align: center' value=0.0>";
 	                else
-	                    var str = "<input value=0.5>";
+	                    var str = "<input style='text-align: center' value=0.5>";
 	                html = html + "<td>" + str + "</td>";
 	            }
-	            html = html +"<td><button id='check_value' type='button' class='btn btn-secondary'>✔</button></td></tr>"; 
+	            html = html +"<td><button id='check_value' type='button' class='btn btn-success'>✓</button></td></tr>"; 
 	            table.append($(html));
 	        }
 	        else
 	        {
 	            for (var rowCount = 0; rowCount < row_table_body; rowCount++) 
 	            {
-	                html = "<tr>";
+	                html = "<tr class='table-dark text-center'>";
 
 	                for (var fieldCount = 0; fieldCount < column_table_body; fieldCount++) {
 	                    if(array_column[fieldCount].toString() === node_id_selected.toString())
 	                    {
-	                        var str = "<input value=0.5>";
+	                        var str = "<input style='text-align: center' value=0.5>";
 	                        html = html + "<td>" + str + "</td>";
 	                    }
 	                    else
@@ -1202,7 +1218,7 @@
 	                        html = html + "<td>" + str + "</td>";
 	                    }    
 	                }
-	                html = html +"<td><button id='check_value' type='button' class='btn btn-secondary'>✔</button></td></tr>";
+	                html = html +"<td><button id='check_value' type='button' class='btn btn-success'>✓</button></td></tr>";
 	                table.append($(html));
 	            }
 	        }
