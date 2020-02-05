@@ -31,13 +31,13 @@ var network = new vis.Network(container, data, options);
 network.on( 'click', function(properties) {
 
 	var option_selected = $("#name_choice").text(); 
-	
+
 	if(option_selected === "Set Properties")
 	{
         //grafica 
         $("#error_dialog").hide();
         $("#success").hide(); 
-        
+
         var ids = properties.nodes;
         if(ids.length===0)
         	return;
@@ -144,106 +144,6 @@ $("#button_open_file_hidden").change(function() {
 });
 
 
-function loadNetwork(xml){
-	nodes.clear();
-	edges.clear();
-
-	nodesDict = {};
-	reverseNodesDict = {};
-	probabilitiesDict = {};
-
-	loaded = true;
-
-	centerX = 0;
-	centerY = 0;
-
-	var variables = xml.find('VARIABLE');
-	variables.each(function(i){
-		var variable = new Object();
-
-		variable.id = i;
-		variable.name = $(this).find('NAME').text();
-
-		variable.values = [];
-		var values = $(this).find('OUTCOME');
-		values.each(function(j){
-			var value = $(this).text();
-			variable.values.push(value);
-		});
-
-		var position = $(this).find('PROPERTY').text();
-		var position = position.split("(");
-		var position = position[1];
-		var position = position.split(")");
-		var position = position[0];
-		var position = position.split(",");
-
-		var x, y;
-		if (centerX == 0 && centerY == 0) {
-			x = 0;
-			y = 0;
-			centerX = position[0];
-			centerY = position[1];
-		} else {
-			x = position[0] - centerX;
-			y = position[1] - centerY;
-		}
-
-		console.log(variable);
-
-		nodesDict[variable.name] = variable;
-		reverseNodesDict[variable.id] = variable;
-
-		nodes.add({
-			id: variable.id,
-			label: variable.name,
-			x: x,
-			y: y,
-			color: "#6c757d",
-			font: {color: "white", size: 15},
-			shape: "box"
-		});
-	});
-
-	var probabilities = xml.find('DEFINITION');
-	probabilities.each(function(i){
-		var probability = new Object();
-
-		probability.target = nodesDict[$(this).find('FOR').text()];
-
-		probability.given = [];
-		$(this).find('GIVEN').each(function(j){
-			var given = $(this).text();
-			probability.given.push(nodesDict[given]);
-		});
-
-		probability.table = $(this).find('TABLE').text().split(" ");
-
-		console.log(probability);
-
-		probabilitiesDict[probability.target.id] = probability;
-	});
-
-	$.each(toList(probabilitiesDict), function(index, value){
-		if (value.given.length != 0) {
-			var to = value.target.id;
-
-			var fromVariables = value.given;
-			var from = [];
-			for (var i = 0; i < fromVariables.length; i++) {
-				from.push(fromVariables[i].id);
-			}
-
-			for (var i = 0; i < from.length; i++) {
-				edges.add({
-					from: from[i],
-					to: to,
-					arrows: 'to'
-				});
-			}
-		}
-	});
-}
 
 //voglio aggiungere un nuovo nodo
 $("#button_create_node").click(function() {
@@ -321,6 +221,113 @@ $("#save_create_nodes").click(function() {
         }   
     }
 });
+
+function loadNetwork(xml){
+	array_keys_nodes = [];
+	array_keys_edges = [];
+	count_id_nodes=0;
+	count_id_edges=0;
+
+	nodes.clear();
+	edges.clear();
+
+	nodesDict = {};
+	probabilitiesDict = {};
+
+	loaded = true;
+
+	centerX = 0;
+	centerY = 0;
+
+	var variables = xml.find('VARIABLE');
+	variables.each(function(i){
+		var variable = new Object();
+
+       	count_id_nodes++;
+		variable.id = count_id_nodes;
+		variable.name = $(this).find('NAME').text();
+
+		variable.values = [];
+		var values = $(this).find('OUTCOME');
+		values.each(function(j){
+			var value = $(this).text();
+			variable.values.push(value);
+		});
+
+		var position = $(this).find('PROPERTY').text();
+		var position = position.split("(");
+		var position = position[1];
+		var position = position.split(")");
+		var position = position[0];
+		var position = position.split(",");
+
+		var x, y;
+		if (centerX == 0 && centerY == 0) {
+			x = 0;
+			y = 0;
+			centerX = position[0];
+			centerY = position[1];
+		} else {
+			x = position[0] - centerX;
+			y = position[1] - centerY;
+		}
+
+		console.log(variable);
+
+		nodes.add({
+			id: variable.id,
+			label: variable.name,
+			x: x,
+			y: y,
+			domain: variable.values.join(),
+			color: {background: "", border: "black"},
+		});
+        array_keys_nodes.push(variable.id);
+        nodesDict[variable.name] = variable;
+	});
+
+	var probabilities = xml.find('DEFINITION');
+	probabilities.each(function(i){
+		var probability = new Object();
+
+		probability.target = nodesDict[$(this).find('FOR').text()];
+
+		probability.given = [];
+		$(this).find('GIVEN').each(function(j){
+			var given = $(this).text();
+			probability.given.push(nodesDict[given]);
+		});
+
+		probability.table = $(this).find('TABLE').text().split(" ");
+
+		console.log(probability);
+
+		probabilitiesDict[probability.target.id] = probability;
+	});
+
+	$.each(Object.values(probabilitiesDict), function(index, value){
+		if (value.given.length != 0) {
+			var to = value.target.id;
+
+			var fromVariables = value.given;
+			var from = [];
+			for (var i = 0; i < fromVariables.length; i++) {
+				from.push(fromVariables[i].id);
+			}
+
+			for (var i = 0; i < from.length; i++) {
+        		count_id_edges++;
+				edges.add({
+					id: count_id_edges,
+					from: from[i].toString(),
+					to: to.toString(),
+					arrows: 'to'
+				});
+        		array_keys_edges.push(count_id_edges);
+			}
+		}
+	});
+}
 //////////////////////////////////////////////////////////////////////////////////////////
 
 //voglio aggiungere un nuovo arco
@@ -386,7 +393,7 @@ var flag_arc=0;
 network.on("select", function (params) 
 {
 	var option_selected = $("#name_choice").text(); 
-	
+
 	if(option_selected === "Create Arc")
 	{
         //event deselect
@@ -615,7 +622,7 @@ $("#button_set_properties").click(function() {
 });
 
 $("#save_set_properties").click(function() {
-	
+
     //controllo che le cose non siano cambiate
     var new_label=$("#label_selected").val();
     var new_domain=$("#domain_selected").val();
@@ -652,7 +659,7 @@ $("#button_probability_table").click(function() {
 	$("#div_query").hide();
 	$("#help_message").hide();
 	$("#div_probability_table").show();
-	
+
 	indip=[];
 	indip.push(getNodesIndip());
 	color_nodes_indip();
@@ -665,7 +672,7 @@ var flag=99;
 $("body").on("click", "#check_value", function(event){
     //salgo di livello fino ad arrivare alla tabella 
     var dynamic_flag = $(this).parent().parent().index();
-    
+
     //CONTROLLO che tutti i valori siano <= 1
     var html = $(this).parent().parent().html();
     //conto quanti input ci sono
@@ -686,7 +693,7 @@ $("body").on("click", "#check_value", function(event){
     else
     {
     	($(this)).attr("class", "btn btn-danger");
-    	($(this)).html("✘");
+    	($(this)).html("✗");
     }
 });
 
@@ -738,7 +745,7 @@ function color_nodes_indip()
 		var id_i = dict.id;
 		var label_i = dict.label;
 		var domain_i = dict.domain;
-		
+
 		if(indip[0].includes(id_i) === true)
 		{
 			nodes.update({ id: id_i,  label: label_i, domain: domain_i, title:"", color:{background:"orange",border:"black"} });
@@ -819,7 +826,7 @@ function getIdFromLabel_edges(from, to)
     {
     	var c = array_keys_edges[v];
     	var dict = (values[1][c]);
-    	
+
     	var from_i = dict.from;
     	var to_i = dict.to;
     	var id_i = dict.id;
@@ -876,11 +883,13 @@ function createDynamicProbabilityTable(node_id_selected)
         	row_table *= elem_i;
         }
     }
-    
+
     //console.log('row->',row_table);
     //console.log('column->',column_table);
     
     var nodes_connected = findNodesConnected_To(node_id_selected);
+
+    console.log(nodes_connected);
     
     //CREAZIONE DINAMICA DELLA TABELLA
     
@@ -967,7 +976,7 @@ function createDynamicProbabilityTable(node_id_selected)
             html = html + "<th><strong></strong></th>";
         }
     }
-    
+
     html = html + "</tr></thead>";
     table.append($(html));
 
@@ -979,7 +988,7 @@ function createDynamicProbabilityTable(node_id_selected)
 
     var row_table_body=row_table;
     var column_table_body=column_table;
-    
+
     //tutte le combinazioni dei domini presi a k gruppi
     var array_domain=[];
     //ho un solo nodo, quindi un solo dominio!
@@ -987,7 +996,7 @@ function createDynamicProbabilityTable(node_id_selected)
     	var num_of_nodes = 1;    
     else
     	var num_of_nodes = allDomain.toString().split(',').length;
-    
+
     var count_nodes = num_of_nodes;
     
     //mi salva tutti i domini a prescindere da indip che dip
@@ -1000,7 +1009,7 @@ function createDynamicProbabilityTable(node_id_selected)
         {
             //nodo indip
             var domain_selected = getDomainFromId(node_id_selected).toString().split(',');
-            
+
             for(var j=0; j<domain_selected.length; j++)
             {
             	combinations_domain.push(domain_selected[j]);
@@ -1028,7 +1037,7 @@ function createDynamicProbabilityTable(node_id_selected)
     		count_nodes -= count;
     		i=0;
     	}
-    	
+
     	var k_group = allDomain.length;
     	var combs = combinations(array_domain,k_group);
 
