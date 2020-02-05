@@ -25,6 +25,8 @@
 }
 #div_probability_table {
     display: none;
+    max-height: 750px;
+    overflow: auto;
 }
 #div_query
 {
