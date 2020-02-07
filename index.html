@@ -1,5 +1,5 @@
 <!doctype html>
-<html>
+<html lang="">
 
 <head>
 	<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
@@ -20,9 +20,9 @@
                 <button type="button" id="button_open_file" class="btn btn-primary" onclick="button_open_file_hidden.click()"><i class="fas fa-file-code"></i> Open File</button>
                 <input type="file" id="button_open_file_hidden" class="d-none">
                 <button type="button" id="button_create_node" class="btn btn-primary"><i class="fas fa-plus-circle"></i> Create Node</button>
-                <button type="button" id="button_create_arc" class="btn btn-primary"><i class="fas fa-arrow-down"></i> Create Arc</button>
+                <button type="button" id="button_create_edge" class="btn btn-primary"><i class="fas fa-arrow-down"></i> Create Edge</button>
                 <button type="button" id="button_delete_node" class="btn btn-primary"><i class="fas fa-trash-alt"></i> Delete Node</button>
-                <button type="button" id="button_delete_arc" class="btn btn-primary"><i class="fas fa-minus"></i> Delete Arc</button>
+                <button type="button" id="button_delete_edge" class="btn btn-primary"><i class="fas fa-minus"></i> Delete Edge</button>
                 <button type="button" id="button_set_properties" class="btn btn-primary"><i class="fas fa-edit"></i> Set Properties</button>
                 <button type="button" id="button_probability_table" class="btn btn-primary"><i class="fas fa-list-alt"></i> Probability Table</button>
                 <button type="button" id="button_query" class="btn btn-primary"><i class="fas fa-question"></i> Query</button>
@@ -40,51 +40,52 @@
                     <div id="div_create_nodes">
                         <div class="form-group">
                             <label class="form-label">Node name:</label>
-                            <input id="label" type="text" class="form-control" placeholder="Node 0" value="Node 0">
+                            <input id="label" type="text" class="form-control" placeholder="Node Name" value="Node Name">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Domain:</label>
                             <input id="domain" type="text" class="form-control" placeholder="T,F" value="T,F">
                         </div>
-                        <button id="save_create_nodes" type="button" class="btn btn-success">Create</button>
+                        <button id="save_create_node" type="button" class="btn btn-success">Create</button>
                     </div>
                     
-                    <div id="div_create_arc">
+                    <div id="div_create_edge">
                         <div class="form-group">
                             <label class="form-label">From:</label>
-                            <input id="from" type="text" class="form-control" placeholder="Node 0">
+                            <input id="from" type="text" class="form-control" placeholder="Node Name">
                         </div>
                         <div class="form-group">
                             <label class="form-label">To:</label>
-                            <input id="to" type="text" class="form-control" placeholder="Node 1">
+                            <input id="to" type="text" class="form-control" placeholder="Node Name">
                         </div>
-                        <button id="save_create_arc" type="button" class="btn btn-success">Create</button>
+                        <button id="save_create_edge" type="button" class="btn btn-success">Create</button>
                     </div>
                     
                     <div id="div_delete_node">
                         <div class="form-group">
                             <label class="form-label">Node name:</label>
-                            <input id="delete_node" type="text" class="form-control" placeholder="Node 0">
+                            <input id="delete_node" type="text" class="form-control" placeholder="Node Name">
                         </div>
                         <button id="save_delete_node" type="button" class="btn btn-success">Delete</button>
                     </div>
                     
-                    <div id="div_delete_arc">
+                    <div id="div_delete_edge">
                         <div class="form-group">
                             <label class="form-label">From:</label>
-                            <input id="delete_from" type="text" class="form-control" placeholder="Node 0">
+                            <input id="delete_from" type="text" class="form-control" placeholder="Node Name">
                         </div>
                         <div class="form-group">
                             <label class="form-label">To:</label>
-                            <input id="delete_to" type="text" class="form-control" placeholder="Node 1">
+                            <input id="delete_to" type="text" class="form-control" placeholder="Node Name">
                         </div>
-                        <button id="save_delete_arc" type="button" class="btn btn-success">Delete</button>
+                        <button id="save_delete_edge" type="button" class="btn btn-success">Delete</button>
                     </div>
                     
                     <div id="div_set_properties">
+                        <input type="hidden" id="set_properties_id">
                         <div class="form-group">
                             <label class="form-label">Node name:</label>
-                            <input id="label_selected" type="text" class="form-control" placeholder="Node 0">
+                            <input id="label_selected" type="text" class="form-control" placeholder="Node Name">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Domain:</label>
@@ -121,5 +122,14 @@
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
     <script type="text/javascript" src="index.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $("#error_dialog").hide();
+            $("#success").hide();
+            $("#div_create_edge").hide();
+            $("#div_delete_edge").hide();
+        });
+    </script>
 </body>
 </html>
