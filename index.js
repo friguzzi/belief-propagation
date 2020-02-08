@@ -43,7 +43,7 @@ function get_probability_cursor(node_id, index_array) {
     let given = node.probability.given;
     let cursor = 0;
     for (const i in index_array) {
-        let index = index_array[i];
+        let index = parseInt(index_array[i]);
         if (i == index_array.length - 1) {
             cursor += index;
         } else {
@@ -69,6 +69,13 @@ function get_probability(node_id, index_array) {
     let cursor = get_probability_cursor(node_id, index_array);
     let node = nodes.get(node_id);
     return node.probability.table[cursor];
+}
+
+function set_probability(node_id, index_array, value) {
+    let cursor = get_probability_cursor(node_id, index_array);
+    let node = nodes.get(node_id);
+    node.probability.table[cursor] = value;
+    return true;
 }
 
 function generate_index_arrays(node_id) {
@@ -433,11 +440,22 @@ $("#save_create_node").click(function() {
     if(label === "" || domain === "" || domain.toString().split(',').length < 2 || domain.slice(-1) === "," || get_id_from_label_node(label))
         $("#error_dialog").show();
     else {
-        let max_id = Math.max(...Object.keys(nodes._data));
+        let max_id;
+        if (nodes.length == 0) {
+            max_id = -1;
+        } else {
+            max_id = Math.max(...Object.keys(nodes._data));
+        }
+        let dom = domain.split(',');
+        let table = [];
+        for (const i in dom) {
+            table.push(1 / dom.length);
+        }
         nodes.add({
             id: max_id + 1,
             label: label,
-            domain: domain.split(','),
+            domain: dom,
+            probability: {given: [], table: table},
             color: {background: "", border: "black"},
         });
         $("#error_dialog").hide();
@@ -457,7 +475,12 @@ $("#save_create_edge").click(function() {
         $("#error_dialog").show();
     else
     {
-        let max_id = Math.max(...Object.keys(edges._data));
+        let max_id;
+        if (edges.length == 0) {
+            max_id = -1;
+        } else {
+            max_id = Math.max(...Object.keys(edges._data));
+        }
         let from_id = get_id_from_label_node(from);
         let to_id = get_id_from_label_node(to);
         edges.add({
@@ -536,8 +559,7 @@ $("#compute_query").click(function() {
 
 function create_dynamic_probability_table(node_id) {
     let node = nodes.get(node_id);
-    console.log(node);
-    let table = $("<table id='dynamic_table' class='table table-hover mt-4'>");
+    let table = "<table id='dynamic_table' class='table table-hover mt-4'>";
     table += "<thead id='thead'><tr class='table-primary text-center'>";
     let str;
     if (node.probability.given.length == 0) {
@@ -545,16 +567,12 @@ function create_dynamic_probability_table(node_id) {
             str = node.label + " (" + node.domain[i] + ")";
             table += "<th><strong>" + str + "</strong></th>";
         }
-        table += "<th><strong></strong></th>";
         table += "</tr></thead><tbody>";
         table += "<tr class='table-dark text-center'>";
         for (let i = 0; i < node.domain.length; i++) {
-            str = "<input style='text-align: center' value=" + node.probability.table[i] + ">";
+            str = "<input name=" + i + " style='text-align: center' value=" + node.probability.table[i] + ">";
             table += "<td>" + str + "</td>";
         }
-        table += "<td><button id='check_value' type='button' class='btn btn-success'>✓</button></td></tr>";
-        table += "</tbody>";
-        $("#div_probability_table").html(table);
     } else {
         let node_from;
         for (const i in node.probability.given) {
@@ -565,7 +583,6 @@ function create_dynamic_probability_table(node_id) {
             str = node.label + " (" + node.domain[i] + ")";
             table += "<th><strong>" + str + "</strong></th>";
         }
-        table += "<th><strong></strong></th>";
         table += "</tr></thead><tbody>";
         let prob = generate_index_arrays(node.id);
         let skipper = node.domain.length - 1;
@@ -583,17 +600,49 @@ function create_dynamic_probability_table(node_id) {
                 for (const d in node.domain) {
                     index.push(parseInt(d));
                     let prob_value = get_probability(node.id, index);
-                    table += "<td><input style='text-align: center' value=" + prob_value + "></td>";
+                    let name = index.join(',');
+                    table += "<td><input name=" + name + " style='text-align: center' value=" + prob_value + "></td>";
                     index.pop();
                 }
-                table += "<td><button id='check_value' type='button' class='btn btn-success'>✓</button></td></tr>";
             }
             skipper--;
             if (skipper == -1) {
                 skipper = node.domain.length - 1;
             }
         }
-        table += "</tbody>";
-        $("#div_probability_table").html(table);
+    }
+    table += "</tbody></table>";
+    let button = '<button id="button_update_probabilities" type="button" class="btn btn-success mt-3" onclick="check_and_update_probabilities(' + node_id + ')">Update Probabilities</button>';
+    $("#div_probability_table").html(table);
+    $("#div_probability_table").append(button);
+}
+
+function check_and_update_probabilities(node_id) {
+    let not_valid = 0;
+    $("#dynamic_table > tbody").find('tr').each(function() {
+        let values = [];
+        $(this).find('input').each(function() {
+            values.push(this.value);
+        });
+        let tot = 0;
+        for (let i = 0; i < values.length; i++) {
+            tot += parseFloat(values[i]);
+        }
+        if (tot !== 1)
+            not_valid += 1;
+    });
+    if (not_valid == 0) {
+        $("#dynamic_table > tbody").find('tr').each(function() {
+            $(this).find('input').each(function() {
+                let value = this.value;
+                let array = $(this).attr('name').split(',');
+                set_probability(node_id, array, parseFloat(value));
+            });
+        });
+        $("#success").show();
+        $("#error_dialog").hide();
+    } else {
+        $("#success").hide();
+        $("#error_dialog").show();
     }
 }
