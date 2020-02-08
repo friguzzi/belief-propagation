@@ -306,6 +306,10 @@ network.on( 'click', function(properties) {
     }
     else if(option_selected === "Probability Table")
     {
+        if (properties.nodes.length !== 0) {
+            let node = nodes.get(properties.nodes[0]);
+            create_dynamic_probability_table(node.id);
+        }
     }
     else if(option_selected === "Delete Node" && properties.nodes.length === 1)
     {
@@ -533,16 +537,63 @@ $("#compute_query").click(function() {
 function create_dynamic_probability_table(node_id) {
     let node = nodes.get(node_id);
     console.log(node);
-    let table = $("<table id='dynamic_table' class='table table-hover mt-3'>");
+    let table = $("<table id='dynamic_table' class='table table-hover mt-4'>");
+    table += "<thead id='thead'><tr class='table-primary text-center'>";
+    let str;
     if (node.probability.given.length == 0) {
-        table += "<thead id='thead'><tr class='table-primary text-center'>";
-        let str;
         for (const i in node.domain) {
             str = node.label + " (" + node.domain[i] + ")";
             table += "<th><strong>" + str + "</strong></th>";
         }
-        table += "<th></th>";
-        table += "</tr></thead>";
-        $("#div_probability_table").append(table);
+        table += "<th><strong></strong></th>";
+        table += "</tr></thead><tbody>";
+        table += "<tr class='table-dark text-center'>";
+        for (let i = 0; i < node.domain.length; i++) {
+            str = "<input style='text-align: center' value=" + node.probability.table[i] + ">";
+            table += "<td>" + str + "</td>";
+        }
+        table += "<td><button id='check_value' type='button' class='btn btn-success'>✓</button></td></tr>";
+        table += "</tbody>";
+        $("#div_probability_table").html(table);
+    } else {
+        let node_from;
+        for (const i in node.probability.given) {
+            node_from = nodes.get(node.probability.given[i]);
+            table += "<th><strong>" + node_from.label + "</strong></th>";
+        }
+        for (const i in node.domain) {
+            str = node.label + " (" + node.domain[i] + ")";
+            table += "<th><strong>" + str + "</strong></th>";
+        }
+        table += "<th><strong></strong></th>";
+        table += "</tr></thead><tbody>";
+        let prob = generate_index_arrays(node.id);
+        let skipper = node.domain.length - 1;
+        for (const p in prob) {
+            if (skipper == node.domain.length - 1) {
+                table += "<tr class='table-dark text-center'>";
+                let index = prob[p];
+                index.pop();
+                for (const element in index) {
+                    let node_id = node.probability.given[element];
+                    let node_id_domain = nodes.get(node_id).domain;
+                    str = node_id_domain[index[element]];
+                    table += "<td><strong>" + str + "</strong></td>";
+                }
+                for (const d in node.domain) {
+                    index.push(parseInt(d));
+                    let prob_value = get_probability(node.id, index);
+                    table += "<td><input style='text-align: center' value=" + prob_value + "></td>";
+                    index.pop();
+                }
+                table += "<td><button id='check_value' type='button' class='btn btn-success'>✓</button></td></tr>";
+            }
+            skipper--;
+            if (skipper == -1) {
+                skipper = node.domain.length - 1;
+            }
+        }
+        table += "</tbody>";
+        $("#div_probability_table").html(table);
     }
 }
