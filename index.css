@@ -11,13 +11,19 @@
 #div_create_nodes {
     display: none;
 }
-#div_create_arc {
+#div_create_edge {
     display: none;
 }
 #div_delete_node {
     display: none;
 }
-#div_delete_arc {
+#div_delete_edge {
+    display: none;
+}
+#error_dialog {
+    display: none;
+}
+#success {
     display: none;
 }
 #div_set_properties {

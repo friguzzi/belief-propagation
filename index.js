@@ -3,6 +3,113 @@ edges = new vis.DataSet([]);
 container = document.getElementById('graph');
 network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
 
+function get_probability_cursor(node_id, index_array) {
+    let node = nodes.get(node_id);
+    let given = node.probability.given;
+    let cursor = 0;
+    for (const i in index_array) {
+        let index = index_array[i];
+        if (i == index_array.length - 1) {
+            cursor += index;
+        } else {
+            let g_id = given[i];
+            let g2_id;
+            let g2_node;
+            let combs_g_fwd = 1;
+            for (const g2 in given) {
+                g2_id = given[g2];
+                g2_node = nodes.get(g2_id);
+                if (g2_id > g_id) {
+                    combs_g_fwd *= g2_node.domain.length;
+                }
+            }
+            combs_g_fwd *= node.domain.length;
+            cursor += index * combs_g_fwd;
+        }
+    }
+    return cursor;
+}
+
+function get_probability(node_id, index_array) {
+    let cursor = get_probability_cursor(node_id, index_array);
+    let node = nodes.get(node_id);
+    return node.probability.table[cursor];
+}
+
+function generate_index_arrays(node_id) {
+    let node = nodes.get(node_id);
+    let given = node.probability.given;
+    let g_id;
+    let g_node;
+    let index_arrays = [];
+    let combs = 1;
+    for (const g in given) {
+        g_id = given[g];
+        g_node = nodes.get(g_id);
+        combs *= g_node.domain.length;
+    }
+    combs *= node.domain.length;
+    for (let i = 0; i < combs; i++) {
+        index_arrays.push([]);
+    }
+    for (const g in given) {
+        g_id = given[g];
+        g_node = nodes.get(g_id);
+        let g2_id;
+        let g2_node;
+        let combs_g_fwd = 1;
+        let combs_g_bwd = 1;
+        for (const g2 in given) {
+            g2_id = given[g2];
+            g2_node = nodes.get(g2_id);
+            if (g2 > g) {
+                combs_g_fwd *= g2_node.domain.length;
+            }
+            if (g2 < g) {
+                combs_g_bwd *= g2_node.domain.length;
+            }
+        }
+        combs_g_fwd *= node.domain.length;
+        for (let times = 0; times < combs_g_bwd; times++) {
+            for (const d in g_node.domain) {
+                for (let i = 0; i < combs_g_fwd; i++) {
+                    index_arrays[times * combs_g_fwd * g_node.domain.length + parseInt(d) * combs_g_fwd + i].push(d);
+                }
+            }
+        }
+    }
+
+    let tot_times = combs / node.domain.length;
+    for (let times = 0; times < tot_times; times++) {
+        for (const d in node.domain) {
+            index_arrays[times * node.domain.length + parseInt(d)].push(d);
+        }
+    }
+    return index_arrays;
+}
+
+function get_nodes_indip()
+{
+    let indip = [];
+    for (const e in nodes._data) {
+        if (nodes._data[e].probability.given.length == 0)
+            indip.push(e);
+    }
+    return indip;
+}
+
+function color_nodes_indip()
+{
+    let nodes_indip = get_nodes_indip();
+    let node;
+    for (const i in nodes_indip) {
+        let id = nodes_indip[i];
+        node = nodes.get(id);
+        node.color.background = "orange";
+        nodes.update(node);
+    }
+}
+
 function get_domain_from_id(id_node)
 {
     for (const e in nodes._data) {
@@ -141,7 +248,7 @@ function load_network(xml){
 
         let probability_table = $(this).find('TABLE').text().split(" ");
 
-        let node = nodes.get(target_node_id);
+        let node = nodes._data[target_node_id];
         node.probability = {};
         node.probability.given = given_nodes_id;
         node.probability.table = probability_table;
@@ -263,6 +370,22 @@ $("#button_probability_table").click(function() {
     $("#div_query").hide();
     $("#help_message").hide();
     $("#div_probability_table").show();
+
+    color_nodes_indip();
+});
+
+$("#button_query").click(function() {
+    $("#error_dialog").hide();
+    $("#success").hide();
+    $("#name_choice").text("Compute Query");
+    $("#div_create_nodes").hide();
+    $("#div_delete_node").hide();
+    $("#div_delete_edge").hide();
+    $("#div_set_properties").hide();
+    $("#div_probability_table").hide();
+    $("#div_create_edge").hide();
+    $("#help_message").hide();
+    $("#div_query").show();
 });
 
 $("#save_create_node").click(function() {
@@ -357,218 +480,32 @@ $("#save_set_properties").click(function() {
         $("#error_dialog").show();
     } else {
         let node = nodes.get(id);
-        console.log(node);
         node.label = new_label;
         node.domain = new_domain;
-        nodes._data[id] = node;
+        nodes.update(node);
         $("#error_dialog").hide();
         $("#success").show();
     }
 });
 
-$("body").on("click", "#check_value", function(event){
-    //salgo di livello fino ad arrivare alla tabella 
-    var dynamic_flag = $(this).parent().parent().index();
-
-    //CONTROLLO che tutti i valori siano <= 1
-    var html = $(this).parent().parent().html();
-    //conto quanti input ci sono
-    var count_input = (html.match(/input/g) || []).length;
-
-    var total_param=0;
-    var val = $(this).parent().parent().children().find('input').each(function(){
-    	var param_i = parseFloat(($(this).val()));
-    	total_param += param_i;
-    });
-    
-    //controllo
-    if(total_param === 1)
-    {
-    	($(this)).attr("class", "btn btn-success");
-    	($(this)).html("✓");
-    }
-    else
-    {
-    	($(this)).attr("class", "btn btn-danger");
-    	($(this)).html("✗");
-    }
-});
-
-//////////////////////////////////////////////////////////////////////////////////////////
-
-//voglio risolvere una query
-$("#button_query").click(function() {
-    //grafica 
-    $("#error_dialog").hide();
-    $("#success").hide(); 
-    $("#name_choice").text("Compute Query");
-    $("#div_create_nodes").hide();
-    $("#div_delete_node").hide();
-    $("#div_delete_arc").hide();
-    $("#div_set_properties").hide();
-    $("#div_probability_table").hide();
-    $("#div_create_arc").hide();
-    $("#help_message").hide();
-    $("#div_query").show();  
-    help_flag=0;
-});
-
-//risolvo la query
 $("#compute_query").click(function() {
-	console.log(network);
+	console.log(nodes);
+    console.log(edges);
 });
 
-//////////////////////////////////////////////////////////////////////////////////////////
-
-function isExistArc(from, to)
-{
-    //controllo se esiste un arco che collega il nodo from al nodo to
-    return getIdFromLabel_edges(from,to);
-}
-
-function color_nodes_indip()
-{
-	var values = $.map(nodes, function(v) { return v; });
-	for(var v=0; v<values[2]; v++)
-	{
-		var c = array_keys_nodes[v];
-		var dict = (values[1][c]);
-		var id_i = dict.id;
-		var label_i = dict.label;
-		var domain_i = dict.domain;
-
-		if(indip[0].includes(id_i) === true)
-		{
-			nodes.update({ id: id_i,  label: label_i, domain: domain_i, title:"", color:{background:"orange",border:"black"} });
-		}
-		else
-		{
-			nodes.update({ id: id_i,  label: label_i, domain: domain_i, title:"", color:{background:"#97C2FC",border:"black"} });
-		}
-	}
-}
-
-function getNodesIndip()
-{
-    //numero di nodi presenti
-    //risalgo l'id dei nodi indipendenti per la costruzione delle tabelle di probabilità
-    var values = $.map(edges, function(v) { return v; });
-    //array di nodi dipendenti
-    var array_nodes_dip=[];
-    var array_nodes_indip=[];
-    
-    for(var v=0; v<values[2]; v++)
-    {
-    	var c = array_keys_edges[v];
-    	var dict = (values[1][c]);
-    	var to_i = dict.to;
-    	array_nodes_dip.push(to_i);
-    }
-    //elimino le doppie
-    var uniqueIds_dip = [];
-    $.each(array_nodes_dip, function(i, el){
-    	if($.inArray(el, uniqueIds_dip) === -1) 
-    		uniqueIds_dip.push(el);
-    });
-    //dall'array delle chiavi elimino i nodi a cui punta un "to"
-    array_nodes_indip = array_keys_nodes.slice();
-    for(var i=0; i<uniqueIds_dip.length; i++)
-    {
-    	var elem = parseInt(uniqueIds_dip[i].toString());
-    	var index = array_nodes_indip.indexOf(elem);
-    	if (index > -1) {
-    		array_nodes_indip.splice(index, 1);
-    	}
-    }
-    return array_nodes_indip;
-}
-
-
-
-function getIdArc_eges(from, to)
-{
-    //dalla label risalgo al suo id
-    var values = $.map(edges, function(v) { return v; });
-    
-    //grafo vuoto, nessun arco
-    if(values.length===0)
-    	return 0;
-    
-    for(var v=0; v<values[2]; v++)
-    {
-    	var c = array_keys_edges[v];
-    	var dict = (values[1][c]);
-        //il nodo non esiste nel grafico
-        if(dict === undefined)
-        	return 0;
-        var id_i = dict.id;  
-        var from_i = dict.from;
-        var to_i = dict.to;
-        if(from_i === from && to_i === to){
-        	return id_i;
+function create_dynamic_probability_table(node_id) {
+    let node = nodes.get(node_id);
+    console.log(node);
+    let table = $("<table id='dynamic_table' class='table table-hover mt-3'>");
+    if (node.probability.given.length == 0) {
+        table += "<thead id='thead'><tr class='table-primary text-center'>";
+        let str;
+        for (const i in node.domain) {
+            str = node.label + " (" + node.domain[i] + ")";
+            table += "<th><strong>" + str + "</strong></th>";
         }
-    }
-    return 0;
-}
-
-function getAllDomainConnectedToId(node_id_selected)
-{
-    //prima mi servono gli id dei vari nodi
-    var nodes_connected = findNodesConnected_To(node_id_selected);
-    
-    if(nodes_connected.length === 0)
-    {
-        //vuol dire che non ci sono archi entranti al nodo
-        return [];
-    }
-    else
-    {
-        //adesso per ogni id vado a salvarmi i loro domini
-        var allDomain = [];
-        for (var i=0; i<nodes_connected.length; i++)
-        {
-        	var domain_i = getDomainFromId(nodes_connected[i]);
-        	allDomain.push(domain_i);
-        }
-        return allDomain;
+        table += "<th></th>";
+        table += "</tr></thead>";
+        $("#div_probability_table").append(table);
     }
 }
-
-function findNodesConnected_From(node_id_selected)
-{
-	var nodes_connected = [];
-    //scorro tutto l'array edge e salvo gli id che hanno "to" == node_id_selected
-    var values = $.map(edges, function(v) { return v; });
-    for(var v=0; v<values[2]; v++)
-    {
-    	var c = array_keys_edges[v];
-    	var dict = (values[1][c]);
-    	var from_i = dict.from;
-    	var to_i = dict.to;
-    	if(from_i === node_id_selected[0].toString()){
-    		nodes_connected.push(to_i);
-    	}
-    }
-    return nodes_connected;
-}
-
-function findNodesConnected_To(node_id_selected)
-{
-	var nodes_connected = [];
-    //scorro tutto l'array edge e salvo gli id che hanno "to" == node_id_selected
-    var values = $.map(edges, function(v) { return v; });
-    console.log(edges);
-    for(var v=0; v<values[2]; v++)
-    {
-    	var c = array_keys_edges[v];
-    	var dict = (values[1][c]);
-    	var to_i = dict.to;
-    	var from_i = dict.from;
-    	var elem = node_id_selected[0].toString();
-    	if(to_i === elem){
-    		nodes_connected.push(from_i);
-    	}
-    }
-    return nodes_connected;
-}
-

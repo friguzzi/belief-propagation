@@ -19,6 +19,7 @@
             <div class="btn-group my-4">
                 <button type="button" id="button_open_file" class="btn btn-primary" onclick="button_open_file_hidden.click()"><i class="fas fa-file-code"></i> Open File</button>
                 <input type="file" id="button_open_file_hidden" class="d-none">
+                <button type="button" id="button_save_file" class="btn btn-primary" onclick=""><i class="fas fa-save"></i> Save File</button>
                 <button type="button" id="button_create_node" class="btn btn-primary"><i class="fas fa-plus-circle"></i> Create Node</button>
                 <button type="button" id="button_create_edge" class="btn btn-primary"><i class="fas fa-arrow-down"></i> Create Edge</button>
                 <button type="button" id="button_delete_node" class="btn btn-primary"><i class="fas fa-trash-alt"></i> Delete Node</button>
@@ -26,7 +27,6 @@
                 <button type="button" id="button_set_properties" class="btn btn-primary"><i class="fas fa-edit"></i> Set Properties</button>
                 <button type="button" id="button_probability_table" class="btn btn-primary"><i class="fas fa-list-alt"></i> Probability Table</button>
                 <button type="button" id="button_query" class="btn btn-primary"><i class="fas fa-question"></i> Query</button>
-                <button type="button" id="button_help" class="btn btn-primary"><i class="fas fa-info"></i> Help</button>
             </div>
         </div>
         <div class="row justify-content-center mx-4">
@@ -100,7 +100,7 @@
                     <div id="div_query">
                         <div class="form-group">
                             <label class="form-label">Query:</label>
-                            <input id="delete_from" type="text" class="form-control" placeholder="P(A|B'C)">
+                            <input id="query_input" type="text" class="form-control" placeholder="P(A|B'C)">
                         </div>
                         <button id="compute_query" type="button" class="btn btn-success">Compute</button>
                     </div>
@@ -122,14 +122,5 @@
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
 
     <script type="text/javascript" src="index.js"></script>
-
-    <script>
-        $(document).ready(function () {
-            $("#error_dialog").hide();
-            $("#success").hide();
-            $("#div_create_edge").hide();
-            $("#div_delete_edge").hide();
-        });
-    </script>
 </body>
 </html>
