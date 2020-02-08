@@ -430,6 +430,8 @@ $("#button_query").click(function() {
     $("#div_create_edge").hide();
     $("#help_message").hide();
     $("#div_query").show();
+
+    create_dynamic_observations_table();
 });
 
 $("#save_create_node").click(function() {
@@ -645,4 +647,8 @@ function check_and_update_probabilities(node_id) {
         $("#success").hide();
         $("#error_dialog").show();
     }
+}
+
+function create_dynamic_observations_selection() {
+
 }
