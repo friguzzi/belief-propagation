@@ -612,7 +612,7 @@ function create_dynamic_probability_table(node_id) {
         }
     }
     table += "</tbody></table>";
-    let button = '<button id="button_update_probabilities" type="button" class="btn btn-success mt-3" onclick="check_and_update_probabilities(' + node_id + ')">Update Probabilities</button>';
+    let button = '<button id="button_update_probabilities" type="button" class="btn btn-primary mt-3" onclick="check_and_update_probabilities(' + node_id + ')">Update Probabilities</button>';
     $("#div_probability_table").html(table);
     $("#div_probability_table").append(button);
 }
