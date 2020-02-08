@@ -3,6 +3,41 @@ edges = new vis.DataSet([]);
 container = document.getElementById('graph');
 network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
 
+function delete_node(node_id) {
+    nodes.remove(node_id);
+    let to_edges = get_to_edges_from_node(node_id);
+    for (const e in to_edges) {
+        let edge = edges.get(to_edges[e]);
+        let to_id = edge.to;
+        let to_node = nodes.get(to_id);
+        let index = to_node.probability.given.indexOf(node_id.toString());
+        to_node.probability.given.splice(index, 1);
+        update_probabilities(to_id);
+        edges.remove(to_edges[e]);
+    }
+}
+
+function delete_edge(edge_id) {
+    let edge = edges.get(edge_id);
+    let node_id = edge.from;
+    let to_id = edge.to;
+    let to_node = nodes.get(to_id);
+    let index = to_node.probability.given.indexOf(node_id.toString());
+    to_node.probability.given.splice(index, 1);
+    update_probabilities(to_id);
+    edges.remove(edge_id);
+}
+
+function update_probabilities(node_id) {
+    let node = nodes.get(node_id);
+    let new_table = [];
+    let index_arrays = generate_index_arrays(node_id);
+    for (const i_array in index_arrays) {
+        new_table.push(1 / node.domain.length);
+    }
+    node.probability.table = new_table;
+}
+
 function get_probability_cursor(node_id, index_array) {
     let node = nodes.get(node_id);
     let given = node.probability.given;
@@ -73,7 +108,7 @@ function generate_index_arrays(node_id) {
         for (let times = 0; times < combs_g_bwd; times++) {
             for (const d in g_node.domain) {
                 for (let i = 0; i < combs_g_fwd; i++) {
-                    index_arrays[times * combs_g_fwd * g_node.domain.length + parseInt(d) * combs_g_fwd + i].push(d);
+                    index_arrays[times * combs_g_fwd * g_node.domain.length + parseInt(d) * combs_g_fwd + i].push(parseInt(d));
                 }
             }
         }
@@ -82,7 +117,7 @@ function generate_index_arrays(node_id) {
     let tot_times = combs / node.domain.length;
     for (let times = 0; times < tot_times; times++) {
         for (const d in node.domain) {
-            index_arrays[times * node.domain.length + parseInt(d)].push(d);
+            index_arrays[times * node.domain.length + parseInt(d)].push(parseInt(d));
         }
     }
     return index_arrays;
@@ -110,24 +145,6 @@ function color_nodes_indip()
     }
 }
 
-function get_domain_from_id(id_node)
-{
-    for (const e in nodes._data) {
-        if (e == id_node) {
-            return nodes._data[e].domain.split(',');
-        }
-    }
-}
-
-function get_label_from_id(id_node)
-{
-    for (const e in nodes._data) {
-        if (e == id_node) {
-            return nodes._data[e].label;
-        }
-    }
-}
-
 function get_id_from_label_node(string)
 {
     for (const e in nodes._data) {
@@ -145,6 +162,16 @@ function get_id_from_label_edges(from, to)
         if (edges._data[e].from == from_id && edges._data[e].to == to_id)
             return e;
     }
+}
+
+function get_to_edges_from_node(node_id) {
+    let ret_edges = [];
+    for (const e in edges._data) {
+        if (edges._data[e].from == node_id) {
+            ret_edges.push(e);
+        }
+    }
+    return ret_edges;
 }
 
 function hide_error_success() {
@@ -256,10 +283,6 @@ function load_network(xml){
 }
 
 network.on( 'click', function(properties) {
-    console.log(properties);
-    console.log(nodes);
-    console.log(edges);
-
 	let option_selected = $("#name_choice").text();
 
 	hide_error_success();
@@ -277,13 +300,13 @@ network.on( 'click', function(properties) {
     else if(option_selected === "Delete Node" && properties.nodes.length === 1)
     {
         let node = nodes.get(properties.nodes[0]);
-        nodes.remove(node);
+        delete_node(node.id);
         $("#success").show();
     }
     else if(option_selected === "Delete Edge" && properties.edges.length === 1 && properties.nodes.length === 0)
     {
         let edge = nodes.get(properties.edges[0]);
-        edges.remove(edge);
+        delete_edge(edge.id);
         $("#success").show();
     }
 });
@@ -400,7 +423,7 @@ $("#save_create_node").click(function() {
         nodes.add({
             id: max_id + 1,
             label: label,
-            domain: domain,
+            domain: domain.split(','),
             color: {background: "", border: "black"},
         });
         $("#error_dialog").hide();
@@ -425,10 +448,13 @@ $("#save_create_edge").click(function() {
         let to_id = get_id_from_label_node(to);
         edges.add({
             id: max_id + 1,
-            from: from_id,
-            to: to_id,
+            from: parseInt(from_id),
+            to: parseInt(to_id),
             arrows: 'to'
         });
+        let to_node = nodes.get(to_id);
+        to_node.probability.given.push(from_id);
+        update_probabilities(to_id);
         $("#error_dialog").hide();
         $("#success").show();
     }
@@ -445,7 +471,7 @@ $("#save_delete_node").click(function() {
     	$("#error_dialog").show();
     else
     {
-    	nodes.remove(id);
+        delete_node(id);
         $("#error_dialog").hide();
         $("#success").show();
     }
@@ -457,14 +483,15 @@ $("#save_delete_edge").click(function() {
     let from = $("#delete_from").val();
     let to = $("#delete_to").val();
 
+    let id = get_id_from_label_edges(from, to);
+
     if (!get_id_from_label_node(from) ||
         !get_id_from_label_node(to) ||
         get_id_from_label_edges(from, to))
         $("#error_dialog").show();
     else
     {
-        let id = get_id_from_label_edges(from, to);
-        edges.remove(id);
+        delete_edge(id);
         $("#error_dialog").hide();
         $("#success").show();
     }
