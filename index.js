@@ -4,17 +4,15 @@ container = document.getElementById('graph');
 network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
 
 function delete_node(node_id) {
-    nodes.remove(node_id);
     let to_edges = get_to_edges_from_node(node_id);
+    let from_edges = get_from_edges_to_node(node_id);
     for (const e in to_edges) {
-        let edge = edges.get(to_edges[e]);
-        let to_id = edge.to;
-        let to_node = nodes.get(to_id);
-        let index = to_node.probability.given.indexOf(node_id.toString());
-        to_node.probability.given.splice(index, 1);
-        update_probabilities(to_id);
-        edges.remove(to_edges[e]);
+        delete_edge(to_edges[e]);
     }
+    for (const e in from_edges) {
+        delete_edge(from_edges[e]);
+    }
+    nodes.remove(node_id);
 }
 
 function delete_edge(edge_id) {
@@ -22,9 +20,11 @@ function delete_edge(edge_id) {
     let node_id = edge.from;
     let to_id = edge.to;
     let to_node = nodes.get(to_id);
-    let index = to_node.probability.given.indexOf(node_id.toString());
-    to_node.probability.given.splice(index, 1);
-    update_probabilities(to_id);
+    if (to_node !== null) {
+        let index = to_node.probability.given.indexOf(node_id.toString());
+        to_node.probability.given.splice(index, 1);
+        update_probabilities(to_id);
+    }
     edges.remove(edge_id);
 }
 
@@ -168,6 +168,16 @@ function get_to_edges_from_node(node_id) {
     let ret_edges = [];
     for (const e in edges._data) {
         if (edges._data[e].from == node_id) {
+            ret_edges.push(e);
+        }
+    }
+    return ret_edges;
+}
+
+function get_from_edges_to_node(node_id) {
+    let ret_edges = [];
+    for (const e in edges._data) {
+        if (edges._data[e].to == node_id) {
             ret_edges.push(e);
         }
     }
