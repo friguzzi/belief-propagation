@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BIF VERSION="0.3"  xmlns="http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3 http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3/XMLBIFv0_3.xsd">
+<NETWORK>
+<NAME>Untitled</NAME>
+<PROPERTY>detailed = </PROPERTY>
+<PROPERTY>short = </PROPERTY>
+
+<VARIABLE TYPE="nature">
+	<NAME>Node 0</NAME>
+	<OUTCOME>T</OUTCOME>
+	<OUTCOME>F</OUTCOME>
+	<PROPERTY>position = (7202.25390625, 5052.205078125)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>Node 1</NAME>
+	<OUTCOME>T</OUTCOME>
+	<OUTCOME>F</OUTCOME>
+	<OUTCOME>C</OUTCOME>
+	<PROPERTY>position = (7783.74609375, 5201.0400390625)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>Node 2</NAME>
+	<OUTCOME>T</OUTCOME>
+	<OUTCOME>F</OUTCOME>
+	<OUTCOME>D</OUTCOME>
+	<PROPERTY>position = (7319.9375, 5401.79443359375)</PROPERTY>
+</VARIABLE>
+
+<DEFINITION>
+	<FOR>Node 0</FOR>
+	<GIVEN>Node 1</GIVEN>
+	<GIVEN>Node 2</GIVEN>
+	<TABLE>0.1 0.9 0.2 0.8 0.3 0.7 0.4 0.6 0.5 0.5 0.6 0.4 0.7 0.3 0.8 0.2 0.9 0.1</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>Node 1</FOR>
+	<TABLE>0.3333 0.3333 0.3334</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>Node 2</FOR>
+	<TABLE>0.3333 0.3333 0.3334</TABLE>
+</DEFINITION>
+</NETWORK>
+</BIF>
