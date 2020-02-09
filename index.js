@@ -431,7 +431,7 @@ $("#button_query").click(function() {
     $("#help_message").hide();
     $("#div_query").show();
 
-    create_dynamic_observations_table();
+    create_dynamic_observations();
 });
 
 $("#save_create_node").click(function() {
@@ -561,7 +561,7 @@ $("#compute_query").click(function() {
 
 function create_dynamic_probability_table(node_id) {
     let node = nodes.get(node_id);
-    let table = "<table id='dynamic_table' class='table table-hover mt-4'>";
+    let table = "<div id='dynamic_table_div'><table id='dynamic_table' class='table table-hover mt-4'>";
     table += "<thead id='thead'><tr class='table-primary text-center'>";
     let str;
     if (node.probability.given.length == 0) {
@@ -613,7 +613,7 @@ function create_dynamic_probability_table(node_id) {
             }
         }
     }
-    table += "</tbody></table>";
+    table += "</tbody></table></div>";
     let button = '<button id="button_update_probabilities" type="button" class="btn btn-primary mt-3" onclick="check_and_update_probabilities(' + node_id + ')">Update Probabilities</button>';
     $("#div_probability_table").html(table);
     $("#div_probability_table").append(button);
@@ -649,6 +649,52 @@ function check_and_update_probabilities(node_id) {
     }
 }
 
-function create_dynamic_observations_selection() {
+function create_dynamic_observations() {
+    function get_html_group(content) {
+        return '<div class="btn-group btn-group-toggle" data-toggle="buttons">' + content + '</div>';
+    }
 
+    function get_html_row(content) {
+        return '<div class="row">' + content + '</div>';
+    }
+
+    function get_html_col_6(content) {
+        return '<div class="col-6">' + content + '</div>';
+    }
+
+    function get_html_col_3(content) {
+        return '<div class="col-3">' + content + '</div>';
+    }
+
+    function get_html_name(node_name) {
+        return '<div class="form-check form-check-inline"><label class="form-check-label">' + node_name + ': ' + '</label></div>'
+    }
+
+    function get_html_option(option, label) {
+        return '<label class="btn btn-secondary"><input name="options" type="radio" value="' + option + '">' + label + '</label>';
+    }
+
+    function get_html_choose() {
+        return '<label class="btn btn-danger active"><input name="options" type="radio" value="-1">NO</label>';
+    }
+
+    let html_out = "";
+
+    let node;
+    for (const n in nodes._data) {
+        let html = "";
+        node = nodes.get(n);
+        let name = get_html_name(node.label);
+        let options = "";
+        for (const d in node.domain) {
+            options += get_html_option(d, node.domain[d]);
+        }
+        let choose = get_html_choose();
+        let opt = get_html_group(options + choose);
+        html += get_html_col_3(name);
+        html += get_html_col_6(opt);
+        html_out += get_html_row(html);
+    }
+
+    $("#observations").html(html_out);
 }

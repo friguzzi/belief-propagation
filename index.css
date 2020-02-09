@@ -31,9 +31,18 @@
 }
 #div_probability_table {
     display: none;
-    max-height: 750px;
+}
+
+#dynamic_table_div {
+    max-height: 690px;
     overflow: auto;
 }
+
+#observations {
+    max-height: 500px;
+    overflow: auto;
+}
+
 #div_query
 {
     display: none;
