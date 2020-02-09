@@ -4,18 +4,47 @@ import numpy as np
 class Node:
     def __init__(self, name):
         self.connections = []
-        self.inbox = {}
+        self.imbox = {}
         self.name = name
 
     def append(self, to_node):
         self.connections.append(to_node)
         to_node.connections.append(self)
 
-    def deliver(self, step_num, mu):
-        if self.inbox.get(step_num):
-            self.inbox[step_num].append(mu)
+    def deliver(self, step_n, mu):
+        if self.imbox.get(step_n):
+            self.imbox[step_n].append(mu)
         else:
-            self.inbox[step_num] = [mu]
+            self.imbox[step_n] = [mu]
+
+
+class Variable(Node):
+    def __init__(self, name, size):
+        self.bfmarginal = None
+        self.size = size
+        Node.__init__(self, name)
+
+    def marginal(self):
+        if len(self.imbox):
+            mus = self.imbox[max(self.imbox.keys())]
+            log_values = [np.log(mu.val) for mu in mus]
+            valid_log_values = [np.nan_to_num(lv) for lv in log_values]
+            sum_logs = sum(valid_log_values)
+            valid_sum_logs = sum_logs - max(sum_logs)
+            prod = np.exp(valid_sum_logs)
+            return prod / sum(prod)
+        else:
+            return np.ones(self.size) / self.size
+
+    def create_message(self, recipient):
+        if not len(self.connections) == 1:
+            unfiltered_mus = self.imbox[max(self.imbox.keys())]
+            mus = [mu for mu in unfiltered_mus
+                   if not mu.from_node == recipient]
+            log_values = [np.log(mu.val) for mu in mus]
+            return np.exp(sum(log_values))
+        else:
+            return np.ones(self.size)
 
 
 class Factor(Node):
@@ -24,19 +53,19 @@ class Factor(Node):
         self.p = potentials
         Node.__init__(self, name)
 
-    def make_message(self, recipient):
+    def create_message(self, recipient):
         if not len(self.connections) == 1:
-            unfiltered_mus = self.inbox[max(self.inbox.keys())]
+            unfiltered_mus = self.imbox[max(self.imbox.keys())]
             mus = [mu for mu in unfiltered_mus
                    if not mu.from_node == recipient]
             all_mus = [self.reformat_mu(mu) for mu in mus]
-            lambdas = np.array([np.log(mu) for mu in all_mus])
-            max_lambdas = np.nan_to_num(lambdas.flatten())
-            max_lambda = max(max_lambdas)
-            result = sum(lambdas) - max_lambda
+            lanbdas = np.array([np.log(mu) for mu in all_mus])
+            max_lanbdas = np.nan_to_num(lanbdas.flatten())
+            max_lanbda = max(max_lanbdas)
+            result = sum(lanbdas) - max_lanbda
             product_output = np.multiply(self.p, np.exp(result))
             return np.exp(
-                np.log(self.summation(product_output, recipient)) + max_lambda)
+                np.log(self.summation(product_output, recipient)) + max_lanbda)
         else:
             return self.summation(self.p, recipient)
 
@@ -61,42 +90,6 @@ class Factor(Node):
             i = coord[which_dim]
             out[i] += p[coord]
         return out
-
-
-class Variable(Node):
-    def __init__(self, name, size):
-        self.bfmarginal = None
-        self.size = size
-        Node.__init__(self, name)
-
-    def marginal(self):
-        if len(self.inbox):
-            mus = self.inbox[max(self.inbox.keys())]
-            log_vals = [np.log(mu.val) for mu in mus]
-            valid_log_vals = [np.nan_to_num(lv) for lv in log_vals]
-            sum_logs = sum(valid_log_vals)
-            valid_sum_logs = sum_logs - max(sum_logs)
-            prod = np.exp(valid_sum_logs)
-            return prod / sum(prod)
-        else:
-            return np.ones(self.size) / self.size
-
-    def latex_marginal(self):
-        data = self.marginal()
-        data_str = ' & '.join([str(d) for d in data])
-        tabular = '|' + ' | '.join(['l' for i in range(self.size)]) + '|'
-        return ("$$p(\mathrm{" + self.name + "}) = \\begin{tabular}{" + tabular
-                + '} \hline' + data_str + '\\\\ \hline \end{tabular}$$')
-
-    def make_message(self, recipient):
-        if not len(self.connections) == 1:
-            unfiltered_mus = self.inbox[max(self.inbox.keys())]
-            mus = [mu for mu in unfiltered_mus
-                   if not mu.from_node == recipient]
-            log_vals = [np.log(mu.val) for mu in mus]
-            return np.exp(sum(log_vals))
-        else:
-            return np.ones(self.size)
 
 
 class Mu:
@@ -162,7 +155,7 @@ class FactorGraph:
         epsilons = [1]
         step = 0
         for node in self.nodes.values():
-            node.inbox.clear()
+            node.imbox.clear()
         cur_marginals = self.export_marginals()
         for node in self.nodes.values():
             if isinstance(node, Variable):
@@ -185,7 +178,7 @@ class FactorGraph:
                 for recipient in next_recipients:
                     if self.debug:
                         print(sender.name + ' -> ' + recipient.name)
-                    val = sender.make_message(recipient)
+                    val = sender.create_message(recipient)
                     message = Mu(sender, val)
                     recipient.deliver(step, message)
             cur_marginals = self.export_marginals()
