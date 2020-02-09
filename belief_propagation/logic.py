@@ -11,7 +11,7 @@ class Node:
         self.connections.append(to_node)
         to_node.connections.append(self)
 
-    def deliver(self, step_n, mu):
+    def propagate(self, step_n, mu):
         if self.imbox.get(step_n):
             self.imbox[step_n].append(mu)
         else:
@@ -161,7 +161,7 @@ class FactorGraph:
             if isinstance(node, Variable):
                 message = Mu(node, np.ones(node.size))
                 for recipient in node.connections:
-                    recipient.deliver(step, message)
+                    recipient.propagate(step, message)
 
         while (step < max_iter) and tolerance < epsilons[-1]:
             last_marginals = cur_marginals
@@ -180,7 +180,7 @@ class FactorGraph:
                         print(sender.name + ' -> ' + recipient.name)
                     val = sender.create_message(recipient)
                     message = Mu(sender, val)
-                    recipient.deliver(step, message)
+                    recipient.propagate(step, message)
             cur_marginals = self.export_marginals()
             if error_fun:
                 epsilons.append(error_fun(cur_marginals, last_marginals))

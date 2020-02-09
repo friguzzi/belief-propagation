@@ -74,7 +74,7 @@ def foo():
     observations = data['observations']
     g = build_graph(nodes)
     observe(g, observations)
-    g.compute_marginals(max_iter=500, tolerance=1e-6)
+    g.compute_marginals(max_iter=1000, tolerance=1e-6)
     result = g.nodes[query_node].marginal()
     return jsonify(str(result))
 
