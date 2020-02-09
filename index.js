@@ -1,7 +1,7 @@
-nodes = new vis.DataSet([]);
-edges = new vis.DataSet([]);
-container = document.getElementById('graph');
-network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
+let nodes = new vis.DataSet([]);
+let edges = new vis.DataSet([]);
+let container = document.getElementById('graph');
+let network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
 
 function delete_node(node_id) {
     let to_edges = get_to_edges_from_node(node_id);
@@ -555,8 +555,34 @@ $("#save_set_properties").click(function() {
 });
 
 $("#compute_query").click(function() {
-	console.log(nodes);
-    console.log(edges);
+    let request_data = {};
+    request_data.observations = {};
+    request_data.nodes = nodes._data;
+    request_data.edges = edges._data;
+
+    let query_node_name = $("#query_input").val();
+    let query_node_id = get_id_from_label_node(query_node_name);
+    let query_node = nodes.get(query_node_id);
+
+    if (query_node) {
+        $("#observations > div.row").find("div.btn-group").each(function() {
+            let choice = $(this).find("label.active > input")[0];
+            request_data.observations[this.id] = choice.value;
+        });
+        request_data.query_node = query_node.id;
+        $.ajax({
+            url: 'http://localhost:5000/foo',
+            type: 'post',
+            crossDomain: true,
+            dataType: 'json',
+            contentType: 'application/json',
+            success: function (response) {
+                console.log(response);
+                $("#query_result").text(response);
+            },
+            data: JSON.stringify(request_data)
+        });
+    }
 });
 
 function create_dynamic_probability_table(node_id) {
@@ -650,8 +676,8 @@ function check_and_update_probabilities(node_id) {
 }
 
 function create_dynamic_observations() {
-    function get_html_group(content) {
-        return '<div class="btn-group btn-group-toggle" data-toggle="buttons">' + content + '</div>';
+    function get_html_group(content, node_id) {
+        return '<div id="' + node_id + '" class="btn-group btn-group-toggle" data-toggle="buttons">' + content + '</div>';
     }
 
     function get_html_row(content) {
@@ -690,7 +716,7 @@ function create_dynamic_observations() {
             options += get_html_option(d, node.domain[d]);
         }
         let choose = get_html_choose();
-        let opt = get_html_group(options + choose);
+        let opt = get_html_group(options + choose, node.id);
         html += get_html_col_3(name);
         html += get_html_col_6(opt);
         html_out += get_html_row(html);
