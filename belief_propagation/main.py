@@ -3,10 +3,50 @@ from flask_cors import CORS, cross_origin
 
 import numpy as np
 
+from xml.etree.ElementTree import Element, SubElement, tostring
+
 from logic import Variable, Factor, FactorGraph
 
 app = Flask(__name__)
 CORS(app, support_credentials=True)
+
+
+def generate_xml(nodes):
+    bif = Element('BIF')
+    bif.set("VERSION", "0.3")
+    bif.set("xmlns", "http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3")
+    bif.set("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+    bif.set("xsi:schemaLocation", "http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3 http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3/XMLBIFv0_3.xsd")
+    network = SubElement(bif, "NETWORK")
+    nm = SubElement(network, "NAME")
+    nm.text = "Untitled"
+    property_1 = SubElement(network, "PROPERTY")
+    property_1.text = "detailed = "
+    property_2 = SubElement(network, "PROPERTY")
+    property_2.text = "detailed = "
+    for node in nodes:
+        variable = SubElement(network, "VARIABLE")
+        variable.set("TYPE", "nature")
+        name = SubElement(variable, "NAME")
+        name.text = nodes[node]['label']
+        domain = nodes[node]['domain']
+        for d in domain:
+            outcome = SubElement(variable, "OUTCOME")
+            outcome.text = d
+        property = SubElement(variable, "PROPERTY")
+        property.text = "position = (0.0, 0.0)"
+        definition = SubElement(network, "DEFINITION")
+        def_for = SubElement(definition, "FOR")
+        def_for.text = nodes[node]['label']
+        given = nodes[node]['probability']['given']
+        table = nodes[node]['probability']['table']
+        table = [str(p) for p in table]
+        for g in given:
+            def_given = SubElement(definition, "GIVEN")
+            def_given.text = nodes[g]['label']
+        def_table = SubElement(definition, "TABLE")
+        def_table.text = " ".join(table)
+    return (b'<?xml version="1.0" encoding="UTF-8"?>' + tostring(bif)).decode('utf-8')
 
 
 def build_graph(nodes):
@@ -65,18 +105,28 @@ def observe(graph, observations):
         graph.observe('x_' + o, observations[o] + 1)
 
 
-@app.route('/foo', methods=['POST'])
+@app.route('/belief_propagation', methods=['POST'])
 @cross_origin(supports_credentials=True)
-def foo():
+def belief_propagation():
     data = request.json
     nodes = data['nodes']
     query_node = 'x_' + str(data['query_node'])
     observations = data['observations']
+    generate_xml(nodes)
     g = build_graph(nodes)
     observe(g, observations)
     g.compute_marginals(max_iter=1000, tolerance=1e-6)
     result = g.nodes[query_node].marginal()
     return jsonify(str(result))
+
+
+@app.route('/save_network', methods=['POST'])
+@cross_origin(supports_credentials=True)
+def save_network():
+    data = request.json
+    nodes = data['nodes']
+    xml = generate_xml(nodes)
+    return jsonify({"xml": str(xml)})
 
 
 if __name__ == '__main__':
