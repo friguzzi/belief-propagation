@@ -196,6 +196,11 @@ function hide_error_success() {
     $("#success").hide();
 }
 
+$("#button_new").click(function() {
+    nodes.clear();
+    edges.clear();
+});
+
 $("#button_open_file_hidden").change(function() {
     let file = $(this)[0].files[0];
     $("#fileName").text(file.name);
@@ -216,6 +221,35 @@ $("#button_open_file_hidden").change(function() {
         let $xml = $(xmlDoc);
         load_network($xml);
     }
+});
+
+$("#button_save_file").click(function() {
+    let request_data = {};
+    request_data.nodes = nodes._data;
+    console.log(request_data);
+    $.ajax({
+        url: 'http://localhost:5000/save_network',
+        type: 'post',
+        crossDomain: true,
+        dataType: 'json',
+        contentType: 'application/json',
+        success: function (response) {
+            console.log(response.xml);
+            var blob = new Blob([response.xml], {type: 'text/xml'});
+            if (window.navigator.msSaveOrOpenBlob) {
+                window.navigator.msSaveBlob(blob, "graph.xml");
+            } else {
+                var elem = window.document.createElement('a');
+                elem.href = window.URL.createObjectURL(blob);
+                elem.download = "graph.xml";
+                document.body.appendChild(elem);
+                elem.click();
+                document.body.removeChild(elem);
+            }
+        },
+        data: JSON.stringify(request_data)
+    });
+
 });
 
 function load_network(xml){
@@ -297,6 +331,9 @@ function load_network(xml){
         node.probability.given = given_nodes_id;
         node.probability.table = probability_table;
     });
+}
+
+function save_network(){
 }
 
 network.on( 'click', function(properties) {
@@ -571,7 +608,7 @@ $("#compute_query").click(function() {
         });
         request_data.query_node = query_node.id;
         $.ajax({
-            url: 'http://localhost:5000/foo',
+            url: 'http://localhost:5000/belief_propagation',
             type: 'post',
             crossDomain: true,
             dataType: 'json',
