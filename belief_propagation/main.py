@@ -52,7 +52,7 @@ def generate_xml(nodes):
 def build_graph(nodes):
     factors = {}
     single_factors = {}
-    g = FactorGraph(silent=True)
+    g = FactorGraph()
     for node in nodes:
         node_name = 'x_' + node
         node_domain = nodes[node]['domain']
@@ -102,7 +102,7 @@ def build_graph(nodes):
 def observe(graph, observations):
     observations = {key: int(observations[key]) for key in observations if int(observations[key]) >= 0}
     for o in observations:
-        graph.observe('x_' + o, observations[o] + 1)
+        graph.set_evidence('x_' + o, observations[o] + 1)
 
 
 @app.route('/belief_propagation', methods=['POST'])
@@ -115,7 +115,7 @@ def belief_propagation():
     generate_xml(nodes)
     g = build_graph(nodes)
     observe(g, observations)
-    g.compute_marginals(max_iter=1000, tolerance=1e-6)
+    g.calculate_marginals()
     result = g.nodes[query_node].marginal()
     return jsonify(str(result))
 
