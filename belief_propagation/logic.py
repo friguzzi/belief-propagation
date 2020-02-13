@@ -20,7 +20,7 @@ class Node:
 
 class Variable(Node):
     def __init__(self, name, size):
-        Node.__init__(self, name)
+        super(Variable, self).__init__(name)
         self.bfmarginal = None
         self.size = size
 
@@ -46,7 +46,7 @@ class Variable(Node):
 
 class Factor(Node):
     def __init__(self, name, potentials):
-        Node.__init__(self, name)
+        super(Factor, self).__init__(name)
         self.potential = potentials
 
     def reshape_mu(self, mu):
@@ -149,7 +149,4 @@ class FactorGraph:
         nd.connections = []
 
     def get_marginals(self):
-        return dict([
-            (n.name, n.marginal()) for n in self.nodes.values()
-            if isinstance(n, Variable)
-        ])
+        return dict([(n.name, n.marginal()) for n in self.nodes.values() if isinstance(n, Variable)])
