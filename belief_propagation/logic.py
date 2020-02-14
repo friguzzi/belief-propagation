@@ -115,7 +115,7 @@ class FactorGraph:
     def calculate_marginals(self, max_iterations=1000, tol=1e-5):
         """
         This is the main method of the implementation and consists in a loop until max_iterations that propagates
-        messages from variables to factors and vice-versa.
+        messages from variables to factors and vice-versa, using parallel message passing.
         The method used is described in the book at
         http://web4.cs.ucl.ac.uk/staff/D.Barber/textbook/091117.pdf from page 88.
         """
