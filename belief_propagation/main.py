@@ -12,6 +12,10 @@ CORS(app, support_credentials=True)
 
 
 def generate_xml(nodes):
+    '''
+    This function takes the nodes dictionary as input and generates a valid XMLBIF file from it.
+    Then returns it, which is sent to the client front-end.
+    '''
     bif = Element('BIF')
     bif.set("VERSION", "0.3")
     bif.set("xmlns", "http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3")
@@ -50,6 +54,11 @@ def generate_xml(nodes):
 
 
 def build_graph(nodes):
+    '''
+    This function, given the nodes dictionary, builds the graph (or network) corresponding, by using the utility
+    classes of the belief propagation model.
+    It returns the finished graph.
+    '''
     factors = {}
     single_factors = {}
     g = FactorGraph()
@@ -108,6 +117,11 @@ def observe(graph, observations):
 @app.route('/belief_propagation', methods=['POST'])
 @cross_origin(supports_credentials=True)
 def belief_propagation():
+    '''
+    At the address "belief_propagation", the POST value gets parsed and used to generate a valid network that then
+    gets used to calculate marginals.
+    The returned values are the marginals of the node specified in the query.
+    '''
     data = request.json
     nodes = data['nodes']
     query_node = 'x_' + str(data['query_node'])
@@ -123,6 +137,11 @@ def belief_propagation():
 @app.route('/save_network', methods=['POST'])
 @cross_origin(supports_credentials=True)
 def save_network():
+    '''
+    At the address "save_network", the POST value (the nodes dictionary object) gets parsed and used to generate
+    a valid XMLBIF file.
+    The returned value is the XMLBIF file, stringified and jsonified.
+    '''
     data = request.json
     nodes = data['nodes']
     xml = generate_xml(nodes)

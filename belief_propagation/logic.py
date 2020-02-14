@@ -3,15 +3,26 @@ import numpy as np
 
 class Node:
     def __init__(self, name):
+        """
+        name: Name of the node
+        mailbox: structure that contains the messages received
+        connections: structure that contains references to the nodes connceted to this node
+        """
         self.name = name
         self.mailbox = {}
         self.connections = []
 
     def append(self, dest_node):
+        """
+        With this method, we update the connections list of this node and the destination node.
+        """
         self.connections.append(dest_node)
         dest_node.connections.append(self)
 
     def propagate(self, step_number, mu):
+        """
+        Propagate the message vector mu @step_number
+        """
         if not self.mailbox.get(step_number):
             self.mailbox[step_number] = [mu]
         else:
@@ -25,6 +36,11 @@ class Variable(Node):
         self.size = size
 
     def marginal(self):
+        """
+        To calculate the marginal, the method used is described in the book at
+        http://web4.cs.ucl.ac.uk/staff/D.Barber/textbook/091117.pdf from page 88.
+        We use logarithmic values to reduce errors of propagation in big networks.
+        """
         if len(self.mailbox):
             mus = self.mailbox[max(self.mailbox.keys())]
             log_vals = [np.log(mu.value) for mu in mus]
@@ -50,6 +66,10 @@ class Factor(Node):
         self.potential = potentials
 
     def reshape_mu(self, mu):
+        """
+        This methods reshapes the mu vector to be used for computation in the next steps (since product of vectors
+        requires specific vector shapes).
+        """
         dims = self.potential.shape
         accumulator = np.ones(dims)
         for coordinate in np.ndindex(dims):
@@ -93,6 +113,12 @@ class FactorGraph:
             self.nodes[first_node.name] = first_node
 
     def calculate_marginals(self, max_iterations=1000, tol=1e-5):
+        """
+        This is the main method of the implementation and consists in a loop until max_iterations that propagates
+        messages from variables to factors and vice-versa.
+        The method used is described in the book at
+        http://web4.cs.ucl.ac.uk/staff/D.Barber/textbook/091117.pdf from page 88.
+        """
         step = 0
         epsilons = [1]
         for node in self.nodes.values():

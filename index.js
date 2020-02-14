@@ -39,6 +39,11 @@ function update_probabilities(node_id) {
 }
 
 function get_probability_cursor(node_id, index_array) {
+    /*
+    This function takes the Node ID and an index array, for example [0, 0, 1] means that I want the
+    cursor of the probability in which the first given is True, the second given is True and the Node, whose ID is specified,
+    is False (if all of the three nodes have domains (True, False).
+     */
     let node = nodes.get(node_id);
     let given = node.probability.given;
     let cursor = 0;
@@ -66,12 +71,20 @@ function get_probability_cursor(node_id, index_array) {
 }
 
 function get_probability(node_id, index_array) {
+    /*
+    After getting the cursor, get the probability by moving to the offset in the linear array which contains the
+    probabilities.
+     */
     let cursor = get_probability_cursor(node_id, index_array);
     let node = nodes.get(node_id);
     return node.probability.table[cursor];
 }
 
 function set_probability(node_id, index_array, value) {
+    /*
+    After getting the cursor, get the probability by moving to the offset in the linear array which contains the
+    probabilities.
+     */
     let cursor = get_probability_cursor(node_id, index_array);
     let node = nodes.get(node_id);
     node.probability.table[cursor] = value;
@@ -79,6 +92,30 @@ function set_probability(node_id, index_array, value) {
 }
 
 function generate_index_arrays(node_id) {
+    /*
+    This function generates all the index arrays for the specified Node. The way it works is by first considering the
+    domains of all the Given Nodes (the source nodes) and then generating, in the correct logical order, all the
+    possible combinations of indexes.
+    This functions works through iteration and not recursion.
+
+    Example:
+
+    Domains:
+    Node 1: (T, F)
+    Node 2: (T, F)
+    Node 3: (A, B, C)
+
+    Output:
+    [0, 0, 0]
+    [0, 0, 1]
+    [0, 0, 2]
+    [0, 1, 0]
+    [0, 1, 1]
+    [0, 1, 2]
+    [1, 0, 0]
+    [1, 0, 1]
+    ...
+     */
     let node = nodes.get(node_id);
     let given = node.probability.given;
     let g_id;
@@ -132,6 +169,9 @@ function generate_index_arrays(node_id) {
 
 function get_nodes_indip()
 {
+    /*
+    By checking how many given (source) nodes each node has, we can know which nodes are indipendent.
+     */
     let indip = [];
     for (const e in nodes._data) {
         if (nodes._data[e].probability.given.length == 0)
@@ -202,6 +242,9 @@ $("#button_new").click(function() {
 });
 
 $("#button_open_file_hidden").change(function() {
+    /*
+    Hidden button to use for opening a file window, to open an .xml file containing a graph using the XMLBIF format.
+     */
     let file = $(this)[0].files[0];
     $("#fileName").text(file.name);
 
@@ -224,6 +267,9 @@ $("#button_open_file_hidden").change(function() {
 });
 
 $("#button_save_file").click(function() {
+    /*
+    Function to query the server to generate a valid XMLBIF file to be saved from the current network.
+     */
     let request_data = {};
     request_data.nodes = nodes._data;
     console.log(request_data);
@@ -253,6 +299,9 @@ $("#button_save_file").click(function() {
 });
 
 function load_network(xml){
+    /*
+    Function that parses the XMLBIF file and generates the corresponding network
+     */
     nodes.clear();
     edges.clear();
 
@@ -592,6 +641,12 @@ $("#save_set_properties").click(function() {
 });
 
 $("#compute_query").click(function() {
+    /*
+    Function that queries the server in order to compute the marginal for the specified node.
+    It also considers observations (evidences) that were set previously in the specific section of the page.
+    By default observations are set to "NO" which means they are disabled for every node.
+    They are opt-in for every node.
+     */
     let request_data = {};
     request_data.observations = {};
     request_data.nodes = nodes._data;
