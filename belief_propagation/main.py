@@ -131,6 +131,8 @@ def belief_propagation():
     observe(g, observations)
     g.calculate_marginals()
     result = g.nodes[query_node].marginal()
+    result = list(result)
+    result = [round(x, 4) for x in result]
     return jsonify(str(result))
 
 
