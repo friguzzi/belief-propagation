@@ -797,6 +797,7 @@ for (node in nodes._data)
             id: max_e_id + 1,
             from: parseInt(node),
             to: parseInt(node_id),
+            label: "f->v[1,1]\nv->f[1,1]"
         });
     }
     for (node in nodes._data)
@@ -815,6 +816,7 @@ for (node in nodes._data)
                 id: max_e_id + 1+parseInt(node_given[n]),
                 from: parseInt(from),
                 to: parseInt(to),
+                label: "f->v[1,1]\nv->f[1,1]"
             });
         
          }
