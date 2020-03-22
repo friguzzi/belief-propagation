@@ -2,6 +2,8 @@ let nodes = new vis.DataSet([]);
 let edges = new vis.DataSet([]);
 let container = document.getElementById('graph');
 let network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
+let nodesf = new vis.DataSet([]);
+let edgesf = new vis.DataSet([]);
 
 function delete_node(node_id) {
     let to_edges = get_to_edges_from_node(node_id);
@@ -201,6 +203,14 @@ function get_id_from_label_node(string)
     }
 }
 
+function get_factor_id_from_label_node(string)
+{
+    for (const e in nodesf._data) {
+        if (nodesf._data[e].label === string) {
+            return e;
+        }
+    }
+}
 function get_id_from_label_edges(from, to)
 {
     let from_id = get_id_from_label_node(from);
@@ -699,6 +709,9 @@ $("#compute_query").click(function() {
     By default observations are set to "NO" which means they are disabled for every node.
     They are opt-in for every node.
      */
+
+    build_graph()
+/*
     let request_data = {};
     request_data.observations = {};
     request_data.nodes = nodes._data;
@@ -726,8 +739,133 @@ $("#compute_query").click(function() {
             },
             data: JSON.stringify(request_data)
         });
-    }
+    }*/
 });
+
+
+function build_graph()
+{
+    nodesf.clear();
+    edgesf.clear();
+    let networkf = new vis.Network(container, {nodes: nodesf, edges: edgesf}, {});
+//    factors = {}
+//    single_factors = {}
+//    g = FactorGraph()
+    let max_id_nodes;
+    if (nodes.length == 0) {
+        max_id_nodes = -1;
+    } else {
+        max_id_nodes = Math.max(...Object.keys(nodes._data));
+    }
+for (node in nodes._data)
+    {
+     //   node_name = 'x_' + node
+        node_name = nodes._data[node]['label']
+        node_domain = nodes._data[node]['domain']
+        node_given = nodes._data[node]['probability']['given']
+        nodesf.add({
+            id: node,
+            label: node_name,
+            domain: node_domain,
+//            probability: {given: [], table: table},
+            color: {background: "", border: "black"},
+        });
+
+
+//        node_variable = Variable(node_name, len(node_domain))
+//        g.add(node_variable)
+        factor_name = 'f_' + node
+//            probability_table = nodes[node]['probability']['table']
+//            probability_table = [float(f) for f in probability_table]
+//            probabilities = np.array(probability_table)
+        node_id= max_id_nodes+parseInt(node)+1;
+        nodesf.add({
+            id: node_id,
+            label: factor_name,
+        //            probability: {given: [], table: table},
+            color: {background: "", border: "black"},
+            shape: "box"
+        });
+        let max_e_id;
+        if (edgesf.length == 0) {
+            max_e_id = -1;
+        } else {
+            max_e_id = Math.max(...Object.keys(edgesf._data));
+        }
+
+        edgesf.add({
+            id: max_e_id + 1,
+            from: parseInt(node),
+            to: parseInt(node_id),
+        });
+    }
+    for (node in nodes._data)
+    {
+     //   node_name = 'x_' + node
+        node_name = nodes._data[node]['label']
+        node_domain = nodes._data[node]['domain']
+        node_given = nodes._data[node]['probability']['given']
+        factor_name = 'f_' + node
+        for (n in node_given)
+        {
+            let from = get_factor_id_from_label_node(factor_name);
+            let to = parseInt(node_given[n]);
+            let max_e_id = Math.max(...Object.keys(edgesf._data));
+            edgesf.add({
+                id: max_e_id + 1+parseInt(node_given[n]),
+                from: parseInt(from),
+                to: parseInt(to),
+            });
+        
+         }
+      }
+
+
+// //                n_domain = nodes[n]['domain']
+// //                shape.append(len(n_domain))
+//     }
+//            shape.append(len(node_domain))
+//            probabilities = probabilities.reshape(shape)
+//            factor = Factor(factor_name, probabilities)
+/*            first_name = 'x_' + node_given[0]
+            middle_names = []
+            node_given.pop(0)
+            for n in node_given:
+                middle_names.append('x_' + n)
+            factors[factor_name] = {'first': first_name, 'middle': middle_names, 'last': node_name}
+            g.add(factor)
+*/
+/*         }
+        else if (len(node_given) == 0)
+        {
+            factor_name = 'f_' + node
+            probability_table = nodes[node]['probability']['table']
+            probability_table = [float(f) for f in probability_table]
+            probabilities = np.array(probability_table)
+            factor = Factor(factor_name, probabilities)
+            single_factors[node_name] = factor_name
+            g.add(factor)
+        }
+    }
+    for (factor of factors)
+    {
+        first_name = factors[factor]['first']
+        middle_names = factors[factor]['middle']
+        last = factors[factor]['last']
+        g.connect(first_name, factor)
+        for m in middle_names:
+            g.connect(factor, m)
+        g.connect(factor, last)
+    }
+    for (node_name of single_factors)
+    {
+        g.connect(node_name, single_factors[node_name])
+    }
+    return g
+    */
+    
+}
+
 
 function create_dynamic_probability_table(node_id) {
     let node = nodes.get(node_id);
