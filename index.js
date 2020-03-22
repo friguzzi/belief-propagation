@@ -270,6 +270,59 @@ $("#button_save_file").click(function() {
     /*
     Function to query the server to generate a valid XMLBIF file to be saved from the current network.
      */
+
+    var et = require('elementtree');
+    var format = require('xml-formatter');
+    var ElementTree = et.ElementTree;
+    var Element = et.Element;
+    var SubElement = et.SubElement;
+
+    bif = Element('BIF')
+    bif.set("VERSION", "0.3")
+    bif.set("xmlns", "http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3")
+    bif.set("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance")
+    bif.set("xsi:schemaLocation", "http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3 http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3/XMLBIFv0_3.xsd")
+    network = SubElement(bif, "NETWORK")
+    nm = SubElement(network, "NAME")
+    nm.text = "Untitled"
+    property_1 = SubElement(network, "PROPERTY")
+    property_1.text = "detailed = "
+    property_2 = SubElement(network, "PROPERTY")
+    property_2.text = "detailed = "
+    for (node in nodes._data)
+    {
+        variable = SubElement(network, "VARIABLE")
+        variable.set("TYPE", "nature")
+        varname = SubElement(variable, "NAME")
+        varname.text = nodes._data[node]['label']
+        domain = nodes._data[node]['domain']
+        for (d of domain)
+        {
+            outcome = SubElement(variable, "OUTCOME")
+            outcome.text = d
+        }
+        property = SubElement(variable, "PROPERTY")
+        property.text = "position = (0.0, 0.0)"
+        definition = SubElement(network, "DEFINITION")
+        def_for = SubElement(definition, "FOR")
+        def_for.text = nodes._data[node]['label']
+        given = nodes._data[node]['probability']['given']
+        table = nodes._data[node]['probability']['table']
+       // table = [str(p) for p in table]
+        for (g of given)
+        {
+            def_given = SubElement(definition, "GIVEN")
+            def_given.text = nodes._data[g]['label']
+        }
+        def_table = SubElement(definition, "TABLE")
+        def_table.text = table.join(" ")
+    }
+    etree = new ElementTree(bif);
+//    indent(etree);
+    xml = format(etree.write({'xml_declaration': true,'encoding':'utf-8', 'method':"xml"}),{collapseContent: true});
+//    return (b'<?xml version="1.0" encoding="UTF-8"?>' + tostring(bif)).decode('utf-8')
+
+/*
     let request_data = {};
     request_data.nodes = nodes._data;
     console.log(request_data);
@@ -279,9 +332,9 @@ $("#button_save_file").click(function() {
         crossDomain: true,
         dataType: 'json',
         contentType: 'application/json',
-        success: function (response) {
-            console.log(response.xml);
-            var blob = new Blob([response.xml], {type: 'text/xml'});
+        success: function (response) {*/
+            console.log(xml);
+            var blob = new Blob([xml], {type: 'text/xml'});
             if (window.navigator.msSaveOrOpenBlob) {
                 window.navigator.msSaveBlob(blob, "graph.xml");
             } else {
@@ -292,9 +345,8 @@ $("#button_save_file").click(function() {
                 elem.click();
                 document.body.removeChild(elem);
             }
-        },
-        data: JSON.stringify(request_data)
-    });
+//        },
+ //       data: JSON.stringify(request_data)
 
 });
 
