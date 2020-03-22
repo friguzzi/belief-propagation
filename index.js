@@ -4,6 +4,248 @@ let container = document.getElementById('graph');
 let network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
 let nodesf = new vis.DataSet([]);
 let edgesf = new vis.DataSet([]);
+let et = require('elementtree');
+let format = require('xml-formatter');
+const nd = require('nd4js');
+
+class Node {
+    name;
+    mailbox;
+    connections;
+    constructor(name){
+/*        name: Name of the node
+        mailbox: structure that contains the messages received
+        connections: structure that contains references to the nodes connceted to this node
+*/
+        self.name = name
+        self.mailbox = {}
+        self.connections = []
+    }
+    append(dest_node){
+        /*
+        With this method, we update the connections list of this node and the destination node.
+        */
+        self.connections.append(dest_node)
+        dest_node.connections.append(self)
+    }
+
+    propagate(step_number, mu){
+        /*
+        Propagate the message vector mu @step_number
+        */
+        if (!self.mailbox.get(step_number))
+        {
+            self.mailbox[step_number] = [mu];
+        }
+        else
+        {
+            self.mailbox[step_number].append(mu);
+        }
+    }
+}
+
+class Variable extends Node{
+    constructor(name, size){
+        super(name)
+        self.bfmarginal = None
+        self.size = size
+    }
+    marginal(){
+        /*
+        To calculate the marginal, the method used is described in the book at
+        http://web4.cs.ucl.ac.uk/staff/D.Barber/textbook/091117.pdf from page 88.
+        We use logarithmic values to reduce errors of propagation in big networks.
+        */
+        if (len(self.mailbox))
+        {
+            mus = self.mailbox[max(self.mailbox.keys())]
+            log_vals = mus.map(mu=>nd.log(mu.value))
+            valid_log_vals = log_vals.map(nd.nan_to_num)
+            valid_logs_sum = sum(valid_log_vals) - max(sum(valid_log_vals))
+            res = nd.exp(valid_logs_sum)
+            return res / sum(res)
+        }
+        else
+            return nd.ones(self.size) / self.size
+    }
+    create_message(self, dest)
+    {
+        if (!len(self.connections) == 1)
+        {
+            mus_not_filtered = self.mailbox[max(self.mailbox.keys())]
+
+            mus = mus_not_filtered.filter(mu=>mu.source_node != dest)
+            logs=mus.map(mu=>nd.log(mu.value))
+            return nd.exp(sum(logs))
+        }
+        else
+            return nd.ones(self.size)
+    }
+}
+
+class Factor extends Node{
+    potential;
+    constructor(name, potentials){
+        super(name)
+        self.potential = potentials
+    }
+
+    reshape_mu(mu)
+    {
+        /*
+        This methods reshapes the mu vector to be used for computation in the next steps (since product of vectors
+        requires specific vector shapes).
+        */
+        dims = self.potential.shape
+        accumulator = nd.ones(dims)
+        for (coordinate of nd.ndindex(dims))
+        {
+            c = coordinate[self.connections.index(mu.source_node)]
+            accumulator[coordinate] *= mu.value[c]
+        }
+        return accumulator
+    }
+
+    sum(potential, node)
+    {
+        res = nd.zeros(node.size)
+        for (coordinate in nd.ndindex(potential.shape)){
+            c = coordinate[self.connections.index(node)]
+            res[c] += potential[coordinate]
+        }
+        return res
+    }
+
+    create_message(dest)
+    {
+        if (!len(self.connections) == 1)
+        {
+            mus_not_filtered = self.mailbox[max(self.mailbox.keys())]
+            mus = mus_not_filtered.filter(mu=>  mu.source_node != dest)
+            all_mus = mus.map(self.reshape_mu)
+            lambdas = nd.array(all_mus.map(nd.log))
+            max_lambdas = nd.nan_to_num(lambdas.flatten())
+            res = sum(lambdas) - max(max_lambdas)
+            product_output = nd.multiply(self.potential, nd.exp(res))
+            return nd.exp(
+                nd.log(self.sum(product_output, dest)) + max(max_lambdas))
+        }
+        else
+            return self.sum(self.potential, dest)
+    }
+}
+
+class Mu
+{
+    constructor(source_node, value)
+    {
+        self.source_node = source_node
+        val_flat = value.flatten()
+        self.value = val_flat / sum(val_flat)
+    }
+}
+
+class FactorGraph
+{    
+    nodes;
+
+    constructor(first_node=None)
+    {
+        self.nodes = {}
+        if (first_node)
+            self.nodes[first_node.name] = first_node
+    }
+
+    calculate_marginals(max_iterations=1000, tol=1e-5)
+        /*
+        This is the main method of the implementation and consists in a loop until max_iterations that propagates
+        messages from variables to factors and vice-versa, using parallel message passing.
+        The method used is described in the book at
+        http://web4.cs.ucl.ac.uk/staff/D.Barber/textbook/091117.pdf from page 88.
+        */
+    {
+        step = 0
+        epsilons = [1]
+        for (node in self.nodes.values())
+            node.mailbox.clear()
+        cur_marginals = self.get_marginals()
+        for (node in self.nodes.values())
+            if (node instanceof Variable)
+            {
+                message = Mu(node, nd.ones(node.size))
+                for (dest in node.connections)
+                    dest.propagate(step, message)
+            }
+        
+        while ((step < max_iterations) && tol < epsilons[-1])
+        {
+            step += 1
+            last_marginals = cur_marginals
+            vars = self.nodes.values().filter(node=> node instanceof Variable)
+            fs = self.nodes.values().filter(node instanceof Factor)
+            senders = fs + vars
+            for (sender in senders)
+            {
+                next_dests = sender.connections
+                for (dest in next_dests)
+                {
+                    value = sender.create_message(dest)
+                    msg = Mu(sender, value)
+                    dest.propagate(step, msg)
+                }
+            }
+            cur_marginals = self.get_marginals()
+            epsilons.append(self.confront_marginals(cur_marginals, last_marginals))
+        }
+//        return epsilons[1:];
+return epsilons;
+
+    }
+
+    // @staticmethod
+    // def confront_marginals(marginal_1, marginal_2):
+    //     return sum([sum(nd.absolute(marginal_1[k] - marginal_2[k])) for k in marginal_1.keys()])
+
+    add(node)
+    {
+        self.nodes[node.name] = node
+    }
+
+    append(source_node_name, dest_node)
+    {
+        dnn = dest_node.name
+        if (!(self.nodes.get(dnn, 0)))
+            self.nodes[dnn] = dest_node
+        self.nodes[source_node_name].append(self.nodes[dnn])
+        return self
+    }
+
+    connect(name1, name2)
+    {
+        self.nodes[name1].append(self.nodes[name2])
+    }
+
+    set_evidence(name, state)
+    {
+        nd = self.nodes[name]
+        for (f in nd.connections.filter(conn=> conn instanceof Factor))
+            del_ax = f.connections.index(nd)
+            del_dims = list(range(nd.size))
+            del_dims.pop(state - 1)
+            sl = nd.delete(f.potential, del_dims, del_ax)
+            f.potential = nd.squeeze(sl)
+            f.connections.remove(nd)
+        nd.connections = []
+    }
+
+    get_marginals()
+    {
+        marg={};
+        for (n of self.nodes.values().filter(n instanceof Variable))
+            marg[n.name]=n.marginal();
+    }
+}
+
 
 function delete_node(node_id) {
     let to_edges = get_to_edges_from_node(node_id);
@@ -281,8 +523,7 @@ $("#button_save_file").click(function() {
     Function to query the server to generate a valid XMLBIF file to be saved from the current network.
      */
 
-    var et = require('elementtree');
-    var format = require('xml-formatter');
+
     var ElementTree = et.ElementTree;
     var Element = et.Element;
     var SubElement = et.SubElement;
