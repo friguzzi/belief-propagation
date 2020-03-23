@@ -763,8 +763,8 @@ class Node {
         /*
         With this method, we update the connections list of this node and the destination node.
         */
-        this.connections.append(dest_node)
-        dest_node.connections.append(this)
+        this.connections.push(dest_node)
+        dest_node.connections.push(this)
     }
 
     propagate(step_number, mu){
@@ -777,7 +777,7 @@ class Node {
         }
         else
         {
-            this.mailbox[step_number].append(mu);
+            this.mailbox[step_number].push(mu);
         }
     }
 }
@@ -787,7 +787,7 @@ class Variable extends Node{
     bfmarginal;
     constructor(name, size){
         super(name)
-        this.bfmarginal = None
+        this.bfmarginal = null
         this.size = size
     }
     marginal(){
@@ -796,7 +796,7 @@ class Variable extends Node{
         http://web4.cs.ucl.ac.uk/staff/D.Barber/textbook/091117.pdf from page 88.
         We use logarithmic values to reduce errors of propagation in big networks.
         */
-        if (len(this.mailbox))
+        if (this.mailbox.length)
         {
             mus = this.mailbox[max(this.mailbox.keys())]
             log_vals = mus.map(mu=>nd.log(mu.value))
@@ -808,9 +808,9 @@ class Variable extends Node{
         else
             return nd.ones(this.size) / this.size
     }
-    create_message(this, dest)
+    create_message(dest)
     {
-        if (!len(this.connections) == 1)
+        if (this.connections.length != 1)
         {
             mus_not_filtered = this.mailbox[max(this.mailbox.keys())]
 
@@ -858,7 +858,7 @@ class Factor extends Node{
 
     create_message(dest)
     {
-        if (!len(this.connections) == 1)
+        if (this.connections.length != 1)
         {
             mus_not_filtered = this.mailbox[max(this.mailbox.keys())]
             mus = mus_not_filtered.filter(mu=>  mu.source_node != dest)
@@ -889,11 +889,9 @@ class FactorGraph
 {    
     nodes;
 
-    constructor(first_node=None)
+    constructor()
     {
         this.nodes = {}
-        if (first_node)
-            this.nodes[first_node.name] = first_node
     }
 
     calculate_marginals(max_iterations=1000, tol=1e-5)
@@ -935,7 +933,7 @@ class FactorGraph
                 }
             }
             cur_marginals = this.get_marginals()
-            epsilons.append(this.confront_marginals(cur_marginals, last_marginals))
+            epsilons.push(this.confront_marginals(cur_marginals, last_marginals))
         }
 //        return epsilons[1:];
 return epsilons;
@@ -956,7 +954,7 @@ return epsilons;
         dnn = dest_node.name
         if (!(this.nodes.get(dnn, 0)))
             this.nodes[dnn] = dest_node
-        this.nodes[source_node_name].append(this.nodes[dnn])
+        this.nodes[source_node_name].push(this.nodes[dnn])
         return this
     }
 
@@ -1015,12 +1013,25 @@ for (node in nodes._data)
         });
 
 
-        node_variable = Variable(id, len(node_domain))
+        node_variable = new Variable(node, node_domain.length)
         g.add(node_variable)
         factor_name = 'f_' + node
         probability_table = nodes._data[node]['probability']['table']
-        probability_table = probability_table.map(float)
+        //probability_table = probability_table.map(float)
         probabilities = nd.array(probability_table)
+        shape = []
+        for (n in node_given)
+        {
+            n_domain = nodes._data[n]['domain']
+         //   probabilities=probabilities.reshape(n_domain.length,-1)
+           // console.log(probabilities.toString());
+            shape.push(n_domain.length)
+        }
+        shape.push(node_domain.length)
+        probabilities=nd.NDArray.prototype.reshape.apply(probabilities,shape);
+//        probabilities = probabilities.reshape(shape)
+        console.log(probabilities.toString());
+
         node_id= max_id_nodes+parseInt(node)+1;
         nodesf.add({
             id: node_id,
@@ -1029,6 +1040,7 @@ for (node in nodes._data)
             color: {background: "", border: "black"},
             shape: "box"
         });
+        factor = new Factor(node_id, probabilities)
         let max_e_id;
         if (edgesf.length == 0) {
             max_e_id = -1;
@@ -1042,6 +1054,8 @@ for (node in nodes._data)
             to: parseInt(node_id),
             label: "f->v[1,1]\nv->f[1,1]"
         });
+        g.add(factor)
+        g.connect(node_id, node)
     }
     for (node in nodes._data)
     {
@@ -1061,6 +1075,7 @@ for (node in nodes._data)
                 to: parseInt(to),
                 label: "f->v[1,1]\nv->f[1,1]"
             });
+            g.connect(from,to);
         
          }
       }
