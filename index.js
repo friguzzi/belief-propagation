@@ -807,8 +807,8 @@ class Variable extends Node{
         }
         else
         {
-            ones=nd.ones(this.size);
-            marginals=nd.zip_elems([ones],(x)=>x/this.size)
+            let ones_vec=nd.tabulate([this.size], (i) => 1);
+            let marginals=nd.zip_elems([ones_vec],(x)=>x/this.size)
             return  marginals;
         }
     }
@@ -1008,16 +1008,18 @@ for (node in nodes._data)
         node_name = nodes._data[node]['label']
         node_domain = nodes._data[node]['domain']
         node_given = nodes._data[node]['probability']['given']
+        node_variable = new Variable(node, node_domain.length)
+        marginal_array=node_variable.marginal().toNestedArray();
+        marginals=marginal_array.map(x=>x.toFixed(2))
         nodesf.add({
             id: node,
-            label: node_name,
+            label: node_name+"\n["+marginals+"]",
             domain: node_domain,
 //            probability: {given: [], table: table},
             color: {background: "", border: "black"},
         });
 
 
-        node_variable = new Variable(node, node_domain.length)
         g.add(node_variable)
         factor_name = 'f_' + node
         probability_table = nodes._data[node]['probability']['table']
