@@ -746,6 +746,15 @@ $("#compute_query").click(function() {
         });
     }*/
 });
+
+function ones(size)
+{
+    return nd.tabulate([size], (i) => 1);
+}
+function zeros(size)
+{
+    return nd.tabulate([size], (i) => 0);
+}
 class Node {
     name;
     mailbox;
@@ -807,8 +816,7 @@ class Variable extends Node{
         }
         else
         {
-            let ones_vec=nd.tabulate([this.size], (i) => 1);
-            let marginals=nd.zip_elems([ones_vec],(x)=>x/this.size)
+            let marginals=nd.zip_elems([ones(this.size)],(x)=>x/this.size)
             return  marginals;
         }
     }
@@ -823,7 +831,7 @@ class Variable extends Node{
             return nd.exp(sum(logs))
         }
         else
-            return nd.ones(this.size)
+            return ones(this.size)
     }
 }
 
@@ -841,7 +849,7 @@ class Factor extends Node{
         requires specific vector shapes).
         */
         dims = this.potential.shape
-        accumulator = nd.ones(dims)
+        accumulator = ones(dims)
         for (coordinate of nd.ndindex(dims))
         {
             c = coordinate[this.connections.index(mu.source_node)]
@@ -852,7 +860,7 @@ class Factor extends Node{
 
     sum(potential, node)
     {
-        res = nd.zeros(node.size)
+        res = zeros(node.size)
         for (coordinate in nd.ndindex(potential.shape)){
             c = coordinate[this.connections.index(node)]
             res[c] += potential[coordinate]
@@ -914,7 +922,7 @@ class FactorGraph
         for (node in this.nodes.values())
             if (node instanceof Variable)
             {
-                message = Mu(node, nd.ones(node.size))
+                message = Mu(node, ones(node.size))
                 for (dest in node.connections)
                     dest.propagate(step, message)
             }
