@@ -806,7 +806,11 @@ class Variable extends Node{
             return res / sum(res)
         }
         else
-            return nd.ones(this.size) / this.size
+        {
+            ones=nd.ones(this.size);
+            marginals=nd.zip_elems([ones],(x)=>x/this.size)
+            return  marginals;
+        }
     }
     create_message(dest)
     {
