@@ -715,8 +715,15 @@ $("#compute_query").click(function() {
     They are opt-in for every node.
      */
 
-    build_graph()
-/*
+    g=build_graph()
+    observations = {}
+    $("#observations > div.row").find("div.btn-group").each(function() {
+        let choice = $(this).find("label.active > input")[0];
+        observations[this.id] = choice.value;
+    });
+    observe(g, observations)
+    g.calculate_marginals(10,1e-4)
+    /*
     let request_data = {};
     request_data.observations = {};
     request_data.nodes = nodes._data;
@@ -746,7 +753,12 @@ $("#compute_query").click(function() {
         });
     }*/
 });
-
+function observe(graph, observations)
+{
+    for (o in observations)
+        if (observations[o]>=0)
+            graph.set_evidence(o, observations[o] + 1)
+}
 function ones(size)
 {
     return nd.tabulate([size], (i) => 1);
@@ -807,10 +819,10 @@ class Variable extends Node{
         */
         if (this.mailbox.length)
         {
-            mus = this.mailbox[max(this.mailbox.keys())]
+            mus = this.mailbox[Math.max(...this.mailbox.keys())]
             log_vals = mus.map(mu=>nd.log(mu.value))
             valid_log_vals = log_vals.map(nd.nan_to_num)
-            valid_logs_sum = sum(valid_log_vals) - max(sum(valid_log_vals))
+            valid_logs_sum = valid_log_vals.reduce( (x,y) => x+y ) - max(sum(valid_log_vals.reduce( (x,y) => x+y )))
             res = nd.exp(valid_logs_sum)
             return res / sum(res)
         }
@@ -892,8 +904,9 @@ class Mu
     constructor(source_node, value)
     {
         this.source_node = source_node
-        val_flat = value.flatten()
-        this.value = val_flat / sum(val_flat)
+        val_flat = value.reshape(-1)
+        let sum=val_flat.reduce( (x,y) => x+y ) 
+        this.value = nd.zip_elems(val_flat,(x)=>x/sum)
     }
 }
 
@@ -906,7 +919,8 @@ class FactorGraph
         this.nodes = {}
     }
 
-    calculate_marginals(max_iterations=1000, tol=1e-5)
+    calculate_marginals(max_iterations, tol)
+    //calculate_marginals(max_iterations=1000, tol=1e-5)
         /*
         This is the main method of the implementation and consists in a loop until max_iterations that propagates
         messages from variables to factors and vice-versa, using parallel message passing.
@@ -917,7 +931,7 @@ class FactorGraph
         step = 0
         epsilons = [1]
         for (node in this.nodes.values())
-            node.mailbox.clear()
+            node.mailbox={}
         cur_marginals = this.get_marginals()
         for (node in this.nodes.values())
             if (node instanceof Variable)
@@ -933,7 +947,7 @@ class FactorGraph
             last_marginals = cur_marginals
             vars = this.nodes.values().filter(node=> node instanceof Variable)
             fs = this.nodes.values().filter(node instanceof Factor)
-            senders = fs + vars
+            senders = fs.concat(vars)
             for (sender in senders)
             {
                 next_dests = sender.connections
@@ -977,15 +991,18 @@ return epsilons;
 
     set_evidence(name, state)
     {
-        nd = this.nodes[name]
-        for (f in nd.connections.filter(conn=> conn instanceof Factor))
-            del_ax = f.connections.index(nd)
-            del_dims = list(range(nd.size))
-            del_dims.pop(state - 1)
+        node = this.nodes[name]
+        factors=node.connections.filter(conn=> conn instanceof Factor)
+        for (const f of factors)
+        {
+            let del_ax = f.connections.indexOf(node)
+            let del_dims = [...Array(node.size).keys()]
+            del_dims.splice(state - 1,1)
             sl = nd.delete(f.potential, del_dims, del_ax)
             f.potential = nd.squeeze(sl)
-            f.connections.remove(nd)
-        nd.connections = []
+            f.connections.splice(del_ax,1)
+        }
+        node.connections = []
     }
 
     get_marginals()
@@ -1134,9 +1151,9 @@ for (node in nodes._data)
     for (node_name of single_factors)
     {
         g.connect(node_name, single_factors[node_name])
-    }
+    }*/
     return g
-    */
+    
     
 }
 
