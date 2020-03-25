@@ -865,13 +865,19 @@ class Factor extends Node{
         */
         let dims = this.potential.shape
 
-        let accumulator = nd.tabulate(dims,(x)=>1)
+        let accumulator = nd.tabulate(dims,(x)=>1.0)
+        console.log(accumulator.toString())
+        let message=mu.value.data
+        let index =this.connections.indexOf(mu.source_node)
         for (const [coordinate,el] of this.potential.elems())
         {
-            let c = coordinate[this.connections.indexOf(mu.source_node)]
-            let val=accumulator.data[coordinate]
-            accumulator.set(coordinate,val * mu.value[c])
+            let c = coordinate[index]
+            //let val=accumulator.data[coordinate]
+            let val=message[c]
+            accumulator.set([...coordinate],val)
+            console.log(accumulator.toString())
         }
+        console.log(accumulator.toString())
         return accumulator
     }
 
@@ -909,6 +915,7 @@ class Factor extends Node{
 
 class Mu
 {
+
     constructor(source_node, value)
     {
         this.source_node = source_node
@@ -916,7 +923,7 @@ class Mu
         let val_flat_array=val_flat.toNestedArray()
         console.log(val_flat_array.toString())
         let sum=val_flat_array.reduce( (x,y) => x+y ) 
-        this.value = nd.zip_elems(val_flat,(x)=>x/sum)
+        this.value= val_flat.mapElems((x)=>x/sum)
         console.log(this.value.toString())
     }
 }
