@@ -819,11 +819,11 @@ class Variable extends Node{
         */
         if (this.mailbox.length)
         {
-            mus = this.mailbox[Math.max(...this.mailbox.keys())]
-            log_vals = mus.map(mu=>nd.log(mu.value))
-            valid_log_vals = log_vals.map(nd.nan_to_num)
-            valid_logs_sum = valid_log_vals.reduce( (x,y) => x+y ) - max(sum(valid_log_vals.reduce( (x,y) => x+y )))
-            res = nd.exp(valid_logs_sum)
+            let mus = this.mailbox[Math.max(...Object.keys(this.mailbox))]
+            let log_vals = mus.map(mu=>nd.log(mu.value))
+            let valid_log_vals = log_vals.map(nd.nan_to_num)
+            let valid_logs_sum = valid_log_vals.reduceElems( (x,y) => x+y ) - max(sum(valid_log_vals.reduce( (x,y) => x+y )))
+            let res = nd.exp(valid_logs_sum)
             return res / sum(res)
         }
         else
@@ -836,13 +836,19 @@ class Variable extends Node{
     {
         if (this.connections.length != 1)
         {
-            mus_not_filtered = this.mailbox[Math.max(...this.mailbox.keys())]
+            let mus_not_filtered = this.mailbox[Math.max(...Object.keys(this.mailbox))]
 
-            mus = mus_not_filtered.filter(mu=>mu.source_node != dest)
-            logs=mus.map(mu=>nd.zip_elems(mu,(x)=>Math.log(x)))  
-            sum_logs=logs.reduce( (x,y) => x+y )           
+            let mus = mus_not_filtered.filter(mu=>mu.source_node != dest)
+//            let logs=mus.map(mu=>nd.zip_elems(mu,(x)=>Math.log(x)))  
+            let product_output=ones(this.size)
+            for (const mu of mus)
+            {
+                product_output=nd.zip_elems([product_output,mu],(a_ij,b_ij, i,j) =>  a_ij * b_ij)
+                console.log(product_output.toString())
+            }
 
-            return nd.zip_elems(sum_logs,(x)=>Math.exp(x))
+            return product_output 
+            //nd.zip_elems(sum_logs,(x)=>Math.exp(x))
         }
         else
             return ones(this.size)
@@ -883,11 +889,15 @@ class Factor extends Node{
 
     sum(potential, node)
     {
-        res = zeros(node.size)
-        for (coordinate in nd.ndindex(potential.shape)){
-            c = coordinate[this.connections.index(node)]
-            res[c] += potential[coordinate]
+        let res = zeros(node.size)
+        let index =this.connections.indexOf(node)
+        for (const [coordinate,el] of this.potential.elems())
+        {
+            let c = coordinate[index]
+            let pot=potential(...coordinate)
+            res.modify([c],x=>x + pot)
         }
+        console.log(res)
         return res
     }
 
@@ -898,12 +908,21 @@ class Factor extends Node{
             let mus_not_filtered = this.mailbox[Math.max(...Object.keys(this.mailbox))]
             let mus = mus_not_filtered.filter(mu=>  mu.source_node != dest)
             let all_mus = mus.map(mu=>this.reshape_mu(mu))
-            lambdas = nd.array(all_mus.map(nd.log))
-            max_lambdas = nd.nan_to_num(lambdas.flatten())
-            res = sum(lambdas) - max(max_lambdas)
-            product_output = nd.multiply(this.potential, nd.exp(res))
-            return nd.exp(
-                nd.log(this.sum(product_output, dest)) + max(max_lambdas))
+        //    lambdas = nd.array(all_mus.map(nd.log))
+        //    max_lambdas = nd.nan_to_num(lambdas.flatten())
+            let product_output=this.potential
+            for (const mu of all_mus)
+            {
+                product_output=nd.zip_elems([product_output,mu],(a_ij,b_ij, i,j) =>  a_ij * b_ij)
+                console.log(product_output.toString())
+            }
+//            res = sum(lambdas) - max(max_lambdas)
+//            product_output = nd.multiply(this.potential, nd.exp(res))
+            console.log(product_output.toString())
+            let res=this.sum(product_output,dest)
+            return res
+//            return nd.exp(
+//                nd.log(this.sum(product_output, dest)) + max(max_lambdas))
         }
         else
             return this.sum(this.potential, dest)
@@ -972,7 +991,7 @@ class FactorGraph
                 for (const dest of next_dests)
                 {
                     let value = sender.create_message(dest)
-                    let msg = Mu(sender, value)
+                    let msg =new  Mu(sender, value)
                     dest.propagate(step, msg)
                 }
             }
