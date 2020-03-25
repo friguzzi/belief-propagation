@@ -843,8 +843,8 @@ class Variable extends Node{
             let product_output=ones(this.size)
             for (const mu of mus)
             {
-                product_output=nd.zip_elems([product_output,mu],(a_ij,b_ij, i,j) =>  a_ij * b_ij)
-                console.log(product_output.toString())
+                product_output=nd.zip_elems([product_output,mu.value],(a_ij,b_ij, i,j) =>  a_ij * b_ij)
+             //   console.log(product_output.toString())
             }
 
             return product_output 
@@ -872,7 +872,7 @@ class Factor extends Node{
         let dims = this.potential.shape
 
         let accumulator = nd.tabulate(dims,(x)=>1.0)
-        console.log(accumulator.toString())
+        //console.log(accumulator.toString())
         let message=mu.value.data
         let index =this.connections.indexOf(mu.source_node)
         for (const [coordinate,el] of this.potential.elems())
@@ -881,9 +881,8 @@ class Factor extends Node{
             //let val=accumulator.data[coordinate]
             let val=message[c]
             accumulator.set([...coordinate],val)
-            console.log(accumulator.toString())
         }
-        console.log(accumulator.toString())
+       // console.log(accumulator.toString())
         return accumulator
     }
 
@@ -897,7 +896,7 @@ class Factor extends Node{
             let pot=potential(...coordinate)
             res.modify([c],x=>x + pot)
         }
-        console.log(res)
+        //console.log(res)
         return res
     }
 
@@ -914,11 +913,10 @@ class Factor extends Node{
             for (const mu of all_mus)
             {
                 product_output=nd.zip_elems([product_output,mu],(a_ij,b_ij, i,j) =>  a_ij * b_ij)
-                console.log(product_output.toString())
             }
 //            res = sum(lambdas) - max(max_lambdas)
 //            product_output = nd.multiply(this.potential, nd.exp(res))
-            console.log(product_output.toString())
+         //   console.log(product_output.toString())
             let res=this.sum(product_output,dest)
             return res
 //            return nd.exp(
@@ -940,10 +938,10 @@ class Mu
         this.source_node = source_node
         let val_flat = value.reshape(-1)
         let val_flat_array=val_flat.toNestedArray()
-        console.log(val_flat_array.toString())
+        //console.log(val_flat_array.toString())
         let sum=val_flat_array.reduce( (x,y) => x+y ) 
         this.value= val_flat.mapElems((x)=>x/sum)
-        console.log(this.value.toString())
+       // console.log(this.value.toString())
     }
 }
 
@@ -987,10 +985,13 @@ class FactorGraph
             let senders = fs.concat(vars)
             for (const sender of senders)
             {
-                let next_dests = sender.connections
+                    console.log(sender.name)
+                    let next_dests = sender.connections
                 for (const dest of next_dests)
                 {
                     let value = sender.create_message(dest)
+                    console.log(dest.name)
+                    console.log(value.toString())
                     let msg =new  Mu(sender, value)
                     dest.propagate(step, msg)
                 }
@@ -1102,7 +1103,7 @@ for (node in nodes._data)
         shape.push(node_domain.length)
         probabilities=nd.NDArray.prototype.reshape.apply(probabilities,shape);
 //        probabilities = probabilities.reshape(shape)
-        console.log(probabilities.toString());
+      //  console.log(probabilities.toString());
 
         node_id= max_id_nodes+parseInt(node)+1;
         nodesf.add({
