@@ -792,7 +792,7 @@ class Node {
         /*
         Propagate the message vector mu @step_number
         */
-        if (!this.mailbox.get(step_number))
+        if (!this.mailbox[step_number])
         {
             this.mailbox[step_number] = [mu];
         }
@@ -836,11 +836,13 @@ class Variable extends Node{
     {
         if (this.connections.length != 1)
         {
-            mus_not_filtered = this.mailbox[max(this.mailbox.keys())]
+            mus_not_filtered = this.mailbox[Math.max(...this.mailbox.keys())]
 
             mus = mus_not_filtered.filter(mu=>mu.source_node != dest)
-            logs=mus.map(mu=>nd.log(mu.value))
-            return nd.exp(sum(logs))
+            logs=mus.map(mu=>nd.zip_elems(mu,(x)=>Math.log(x)))  
+            sum_logs=logs.reduce( (x,y) => x+y )           
+
+            return nd.zip_elems(sum_logs,(x)=>Math.exp(x))
         }
         else
             return ones(this.size)
@@ -854,18 +856,21 @@ class Factor extends Node{
         this.potential = potentials
     }
 
+
     reshape_mu(mu)
     {
         /*
         This methods reshapes the mu vector to be used for computation in the next steps (since product of vectors
         requires specific vector shapes).
         */
-        dims = this.potential.shape
-        accumulator = ones(dims)
-        for (coordinate of nd.ndindex(dims))
+        let dims = this.potential.shape
+
+        let accumulator = nd.tabulate(dims,(x)=>1)
+        for (const [coordinate,el] of this.potential.elems())
         {
-            c = coordinate[this.connections.index(mu.source_node)]
-            accumulator[coordinate] *= mu.value[c]
+            let c = coordinate[this.connections.indexOf(mu.source_node)]
+            let val=accumulator.data[coordinate]
+            accumulator.set(coordinate,val * mu.value[c])
         }
         return accumulator
     }
@@ -884,9 +889,9 @@ class Factor extends Node{
     {
         if (this.connections.length != 1)
         {
-            mus_not_filtered = this.mailbox[max(this.mailbox.keys())]
-            mus = mus_not_filtered.filter(mu=>  mu.source_node != dest)
-            all_mus = mus.map(this.reshape_mu)
+            let mus_not_filtered = this.mailbox[Math.max(...Object.keys(this.mailbox))]
+            let mus = mus_not_filtered.filter(mu=>  mu.source_node != dest)
+            let all_mus = mus.map(mu=>this.reshape_mu(mu))
             lambdas = nd.array(all_mus.map(nd.log))
             max_lambdas = nd.nan_to_num(lambdas.flatten())
             res = sum(lambdas) - max(max_lambdas)
@@ -897,6 +902,9 @@ class Factor extends Node{
         else
             return this.sum(this.potential, dest)
     }
+
+
+
 }
 
 class Mu
@@ -904,9 +912,12 @@ class Mu
     constructor(source_node, value)
     {
         this.source_node = source_node
-        val_flat = value.reshape(-1)
-        let sum=val_flat.reduce( (x,y) => x+y ) 
+        let val_flat = value.reshape(-1)
+        let val_flat_array=val_flat.toNestedArray()
+        console.log(val_flat_array.toString())
+        let sum=val_flat_array.reduce( (x,y) => x+y ) 
         this.value = nd.zip_elems(val_flat,(x)=>x/sum)
+        console.log(this.value.toString())
     }
 }
 
@@ -928,38 +939,38 @@ class FactorGraph
         http://web4.cs.ucl.ac.uk/staff/D.Barber/textbook/091117.pdf from page 88.
         */
     {
-        step = 0
-        epsilons = [1]
-        for (node in this.nodes.values())
+        let step = 0
+        let epsilons = [1]
+        for (node of Object.values(this.nodes))
             node.mailbox={}
-        cur_marginals = this.get_marginals()
-        for (node in this.nodes.values())
+        let cur_marginals = this.get_marginals()
+        for (node of Object.values(this.nodes))
             if (node instanceof Variable)
             {
-                message = Mu(node, ones(node.size))
-                for (dest in node.connections)
+                let message = new Mu(node, ones(node.size))
+                for (const dest of node.connections)
                     dest.propagate(step, message)
             }
         
-        while ((step < max_iterations) && tol < epsilons[-1])
+        while ((step < max_iterations) && tol < epsilons[epsilons.length-1])
         {
             step += 1
-            last_marginals = cur_marginals
-            vars = this.nodes.values().filter(node=> node instanceof Variable)
-            fs = this.nodes.values().filter(node instanceof Factor)
-            senders = fs.concat(vars)
-            for (sender in senders)
+            let last_marginals = cur_marginals
+            let vars = Object.values(this.nodes).filter(node=> node instanceof Variable)
+            let fs = Object.values(this.nodes).filter(node=>node instanceof Factor)
+            let senders = fs.concat(vars)
+            for (const sender of senders)
             {
-                next_dests = sender.connections
-                for (dest in next_dests)
+                let next_dests = sender.connections
+                for (const dest of next_dests)
                 {
-                    value = sender.create_message(dest)
-                    msg = Mu(sender, value)
+                    let value = sender.create_message(dest)
+                    let msg = Mu(sender, value)
                     dest.propagate(step, msg)
                 }
             }
             cur_marginals = this.get_marginals()
-            epsilons.push(this.confront_marginals(cur_marginals, last_marginals))
+//            epsilons.push(this.confront_marginals(cur_marginals, last_marginals))
         }
 //        return epsilons[1:];
 return epsilons;
@@ -967,8 +978,10 @@ return epsilons;
     }
 
     // @staticmethod
-    // def confront_marginals(marginal_1, marginal_2):
-    //     return sum([sum(nd.absolute(marginal_1[k] - marginal_2[k])) for k in marginal_1.keys()])
+//    confront_marginals(marginal_1, marginal_2)
+//    {
+//        return sum([sum(nd.absolute(marginal_1[k] - marginal_2[k])) for k in marginal_1.keys()])
+//    }
 
     add(node)
     {
@@ -1007,8 +1020,10 @@ return epsilons;
 
     get_marginals()
     {
-        marg={};
-        for (n of this.nodes.values().filter(n instanceof Variable))
+        let marg={};
+        let nodes_array= Object.values(this.nodes)
+        let vars=nodes_array.filter(x=>x instanceof Variable)
+        for (const n of vars)
             marg[n.name]=n.marginal();
     }
 }
