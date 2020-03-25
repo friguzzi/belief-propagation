@@ -714,8 +714,11 @@ $("#compute_query").click(function() {
     By default observations are set to "NO" which means they are disabled for every node.
     They are opt-in for every node.
      */
+    let query_node_name = $("#query_input").val();
+    let query_node_id = get_id_from_label_node(query_node_name);
+    let query_node = nodes.get(query_node_id);
 
-    g=build_graph()
+    let g=build_graph()
     observations = {}
     $("#observations > div.row").find("div.btn-group").each(function() {
         let choice = $(this).find("label.active > input")[0];
@@ -723,6 +726,12 @@ $("#compute_query").click(function() {
     });
     observe(g, observations)
     g.calculate_marginals(10,1e-4)
+
+    result = g.nodes[query_node_id].marginal()
+    result = result.toNestedArray()
+ //   result = [round(x, 4) for x in result]
+
+    $("#query_result").text(result);
     /*
     let request_data = {};
     request_data.observations = {};
@@ -817,14 +826,20 @@ class Variable extends Node{
         http://web4.cs.ucl.ac.uk/staff/D.Barber/textbook/091117.pdf from page 88.
         We use logarithmic values to reduce errors of propagation in big networks.
         */
-        if (this.mailbox.length)
+        if (Object.keys(this.mailbox).length)
         {
             let mus = this.mailbox[Math.max(...Object.keys(this.mailbox))]
-            let log_vals = mus.map(mu=>nd.log(mu.value))
-            let valid_log_vals = log_vals.map(nd.nan_to_num)
-            let valid_logs_sum = valid_log_vals.reduceElems( (x,y) => x+y ) - max(sum(valid_log_vals.reduce( (x,y) => x+y )))
-            let res = nd.exp(valid_logs_sum)
-            return res / sum(res)
+            let product_output=ones(this.size)
+            for (const mu of mus)
+            {
+                product_output=nd.zip_elems([product_output,mu.value],(a_ij,b_ij, i,j) =>  a_ij * b_ij)
+             //   console.log(product_output.toString())
+            }
+            let marg_array=product_output.toNestedArray()
+            //console.log(val_flat_array.toString())
+            let sum=marg_array.reduce( (x,y) => x+y ) 
+            return product_output.mapElems((x)=>x/sum)
+    
         }
         else
         {
