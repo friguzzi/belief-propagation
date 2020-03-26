@@ -1131,19 +1131,6 @@ for (node in nodes._data)
             shape: "box"
         });
         factor = new Factor(node_id, probabilities)
-        let max_e_id;
-        if (edgesf.length == 0) {
-            max_e_id = -1;
-        } else {
-            max_e_id = Math.max(...Object.keys(edgesf._data));
-        }
-
-        edgesf.add({
-            id: max_e_id + 1,
-            from: parseInt(node),
-            to: parseInt(node_id),
-            label: "f->v[1,1]\nv->f[1,1]"
-        });
         g.add(factor)
         factors.push({'factor':factor, 'var': node, 'given': node_given, 'factor_name': factor_name})
 //        g.connect(node_id, node)
@@ -1154,21 +1141,40 @@ for (node in nodes._data)
         node_given = factor['given'] 
         
         factor_name = factor['factor_name']
+        console.log(factor_name)
         let from = get_factor_id_from_label_node(factor_name);
+        let variab=factor['var']
         for (n of factor['given'])
         {
             let to = parseInt(n);
-            let max_e_id = Math.max(...Object.keys(edgesf._data));
-            edgesf.add({
-                id: max_e_id + 1+parseInt(node_given[n]),
+            console.log('dest'+n)
+            if (edgesf.length == 0) {
+                max_e_id = -1;
+            } else {
+                max_e_id = Math.max(...Object.keys(edgesf._data));
+            }
+                edgesf.add({
+                id: max_e_id + 1,
                 from: parseInt(from),
                 to: parseInt(to),
                 label: "f->v[1,1]\nv->f[1,1]"
             });
             g.connect(from,to);
-        
+            
          }
-         g.connect(from,factor['var'])
+        if (edgesf.length == 0) {
+            max_e_id = -1;
+        } else {
+            max_e_id = Math.max(...Object.keys(edgesf._data));
+        }
+
+        edgesf.add({
+            id: max_e_id + 1,
+            from: parseInt(from),
+            to: parseInt(variab),
+            label: "f->v[1,1]\nv->f[1,1]"
+        });
+     g.connect(from,factor['var'])
       }
 
 
