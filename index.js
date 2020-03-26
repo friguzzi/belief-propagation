@@ -1109,7 +1109,7 @@ for (node in nodes._data)
         //probability_table = probability_table.map(float)
         probabilities = nd.array(probability_table)
         shape = []
-        for (n in node_given)
+        for (n of node_given)
         {
             n_domain = nodes._data[n]['domain']
          //   probabilities=probabilities.reshape(n_domain.length,-1)
