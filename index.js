@@ -725,7 +725,7 @@ $("#compute_query").click(function() {
         observations[this.id] = choice.value;
     });
     observe(g, observations)
-    g.calculate_marginals(10,1e-4)
+    g.calculate_marginals(2,1e-4)
 
     result = g.nodes[query_node_id].marginal()
     result = result.toNestedArray()
@@ -994,6 +994,7 @@ class FactorGraph
         while ((step < max_iterations) && tol < epsilons[epsilons.length-1])
         {
             step += 1
+            console.log("Step "+step)
             let last_marginals = cur_marginals
             let vars = Object.values(this.nodes).filter(node=> node instanceof Variable)
             let fs = Object.values(this.nodes).filter(node=>node instanceof Factor)
@@ -1075,7 +1076,6 @@ function build_graph()
     nodesf.clear();
     edgesf.clear();
     let networkf = new vis.Network(container, {nodes: nodesf, edges: edgesf}, {});
-    factors = {}
     single_factors = {}
     g = new FactorGraph()
     let max_id_nodes;
@@ -1084,6 +1084,7 @@ function build_graph()
     } else {
         max_id_nodes = Math.max(...Object.keys(nodes._data));
     }
+    factors = []
 for (node in nodes._data)
     {
      //   node_name = 'x_' + node
@@ -1115,10 +1116,11 @@ for (node in nodes._data)
            // console.log(probabilities.toString());
             shape.push(n_domain.length)
         }
+        console.log(shape.toString())
         shape.push(node_domain.length)
         probabilities=nd.NDArray.prototype.reshape.apply(probabilities,shape);
 //        probabilities = probabilities.reshape(shape)
-      //  console.log(probabilities.toString());
+        console.log(probabilities.toString());
 
         node_id= max_id_nodes+parseInt(node)+1;
         nodesf.add({
@@ -1143,19 +1145,19 @@ for (node in nodes._data)
             label: "f->v[1,1]\nv->f[1,1]"
         });
         g.add(factor)
-        g.connect(node_id, node)
+        factors.push({'factor':factor, 'var': node, 'given': node_given, 'factor_name': factor_name})
+//        g.connect(node_id, node)
     }
-    for (node in nodes._data)
+    for (factor of factors)
     {
      //   node_name = 'x_' + node
-        node_name = nodes._data[node]['label']
-        node_domain = nodes._data[node]['domain']
-        node_given = nodes._data[node]['probability']['given']
-        factor_name = 'f_' + node
-        for (n in node_given)
+        node_given = factor['given'] 
+        
+        factor_name = factor['factor_name']
+        let from = get_factor_id_from_label_node(factor_name);
+        for (n of factor['given'])
         {
-            let from = get_factor_id_from_label_node(factor_name);
-            let to = parseInt(node_given[n]);
+            let to = parseInt(n);
             let max_e_id = Math.max(...Object.keys(edgesf._data));
             edgesf.add({
                 id: max_e_id + 1+parseInt(node_given[n]),
@@ -1166,6 +1168,7 @@ for (node in nodes._data)
             g.connect(from,to);
         
          }
+         g.connect(from,factor['var'])
       }
 
 
