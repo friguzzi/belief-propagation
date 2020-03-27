@@ -1079,9 +1079,9 @@ return epsilons;
                 for (const sl in f.connections)
                 {
                     if (sl!=del_ax)
-                        slice.push('...')
+                        slice.push([,,])
                     else
-                        slice.push(del_ax)
+                        slice.push(parseInt(state)-1)
                 }
                 f.potential = f.potential.sliceElems(...slice)
                 console.log(f.potential)
