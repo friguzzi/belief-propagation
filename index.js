@@ -8,7 +8,7 @@ let et = require('elementtree');
 let format = require('xml-formatter');
 const nd = require('nd4js');
 
-
+var g;
 
 
 function delete_node(node_id) {
@@ -585,6 +585,7 @@ $("#button_query").click(function() {
     $("#div_query").show();
 
     create_dynamic_observations();
+    g=build_graph()
 });
 
 $("#save_create_node").click(function() {
@@ -718,7 +719,7 @@ $("#compute_query").click(function() {
     let query_node_id = get_id_from_label_node(query_node_name);
     let query_node = nodes.get(query_node_id);
 
-    let g=build_graph()
+ 
     observations = {}
     $("#observations > div.row").find("div.btn-group").each(function() {
         let choice = $(this).find("label.active > input")[0];
@@ -907,9 +908,16 @@ class Factor extends Node{
         let index =this.connections.indexOf(node)
         for (const [coordinate,el] of this.potential.elems())
         {
-            let c = coordinate[index]
-            let pot=potential(...coordinate)
-            res.modify([c],x=>x + pot)
+            if (coordinate.length==0)
+            {
+                res.modify([0],x=>x + pot)
+            }
+            else
+            {
+                let c = coordinate[index]
+                let pot=potential(...coordinate)
+                res.modify([c],x=>x + pot)
+            }
         }
         //console.log(res)
         return res
@@ -1051,13 +1059,40 @@ return epsilons;
         factors=node.connections.filter(conn=> conn instanceof Factor)
         for (const f of factors)
         {
-            let del_ax = f.connections.indexOf(node)
-            let del_dims = [...Array(node.size).keys()]
-            del_dims.splice(state - 1,1)
-            sl = nd.delete(f.potential, del_dims, del_ax)
-            f.potential = nd.squeeze(sl)
-            f.connections.splice(del_ax,1)
+            if (f.connections.length==1)
+            {
+                f.connections=[]
+            }
+            else
+            {
+                let del_ax = f.connections.indexOf(node)
+                let del_dims_int_arr=f.potential.shape
+                let del_dims=[]
+                for (const i in del_dims_int_arr)
+                { 
+                    del_dims.push(del_dims_int_arr[i])
+                }
+                console.log(del_dims.toString())
+                del_dims.splice(del_ax,1)
+                console.log(del_dims.toString())
+                let slice=[]
+                for (const sl in f.connections)
+                {
+                    if (sl!=del_ax)
+                        slice.push('...')
+                    else
+                        slice.push(del_ax)
+                }
+                f.potential = f.potential.sliceElems(...slice)
+                console.log(f.potential)
+    //            f.potential = f.potential.reshape(...del_dims)
+                console.log(f.potential)
+                console.log(f.connections.toString())
+                f.connections.splice(del_ax,1)
+                console.log(f.connections.toString())
+            }
         }
+
         node.connections = []
     }
 
