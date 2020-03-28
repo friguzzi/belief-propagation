@@ -815,11 +815,11 @@ class Node {
 
 class Variable extends Node{
     size;
-    bfmarginal;
+    observed_state;
     constructor(name, size){
         super(name)
-        this.bfmarginal = null
         this.size = size
+        this.observed_state = null
     }
     marginal(){
         /*
@@ -827,26 +827,33 @@ class Variable extends Node{
         http://web4.cs.ucl.ac.uk/staff/D.Barber/textbook/091117.pdf from page 88.
         We use logarithmic values to reduce errors of propagation in big networks.
         */
-        if (Object.keys(this.mailbox).length)
+        if(this.observed_state!=undefined)
         {
-            let mus = this.mailbox[Math.max(...Object.keys(this.mailbox))]
-            let product_output=ones(this.size)
-            for (const mu of mus)
-            {
-                product_output=nd.zip_elems([product_output,mu.value],(a_ij,b_ij, i,j) =>  a_ij * b_ij)
-             //   console.log(product_output.toString())
-            }
-            let marg_array=product_output.toNestedArray()
-            //console.log(val_flat_array.toString())
-            let sum=marg_array.reduce( (x,y) => x+y ) 
-            return product_output.mapElems((x)=>x/sum)
-    
+            let marg=zeros(this.size)
+            marg.set([this.observed_state],1.0)
+            return marg
         }
         else
-        {
-            let marginals=nd.zip_elems([ones(this.size)],(x)=>x/this.size)
-            return  marginals;
-        }
+            if (Object.keys(this.mailbox).length)
+            {
+                let mus = this.mailbox[Math.max(...Object.keys(this.mailbox))]
+                let product_output=ones(this.size)
+                for (const mu of mus)
+                {
+                    product_output=nd.zip_elems([product_output,mu.value],(a_ij,b_ij, i,j) =>  a_ij * b_ij)
+                //   console.log(product_output.toString())
+                }
+                let marg_array=product_output.toNestedArray()
+                //console.log(val_flat_array.toString())
+                let sum=marg_array.reduce( (x,y) => x+y ) 
+                return product_output.mapElems((x)=>x/sum)
+        
+            }
+            else
+            {
+                let marginals=nd.zip_elems([ones(this.size)],(x)=>x/this.size)
+                return  marginals;
+            }
     }
     create_message(dest)
     {
@@ -1073,6 +1080,8 @@ return epsilons;
     set_evidence(name, state)
     {
         node = this.nodes[name]
+        node.observed_state=parseInt(state)-1
+ 
         factors=node.connections.filter(conn=> conn instanceof Factor)
         for (const f of factors)
         {
