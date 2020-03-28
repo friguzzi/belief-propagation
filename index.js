@@ -715,9 +715,9 @@ $("#compute_query").click(function() {
     By default observations are set to "NO" which means they are disabled for every node.
     They are opt-in for every node.
      */
-    let query_node_name = $("#query_input").val();
-    let query_node_id = get_id_from_label_node(query_node_name);
-    let query_node = nodes.get(query_node_id);
+ //   let query_node_name = $("#query_input").val();
+ //   let query_node_id = get_id_from_label_node(query_node_name);
+ //   let query_node = nodes.get(query_node_id);
 
  
     observations = {}
@@ -728,11 +728,11 @@ $("#compute_query").click(function() {
     observe(g, observations)
     g.calculate_marginals(2,1e-4)
 
-    result = g.nodes[query_node_id].marginal()
-    result = result.toNestedArray()
+//    result = g.nodes[query_node_id].marginal()
+//    result = result.toNestedArray()
  //   result = [round(x, 4) for x in result]
 
-    $("#query_result").text(result);
+//    $("#query_result").text(result);
     /*
     let request_data = {};
     request_data.observations = {};
@@ -991,20 +991,6 @@ class FactorGraph
         for (const node of Object.values(this.nodes))
             node.mailbox={}
         let cur_marginals = this.get_marginals()
-
-
-        for (const n in cur_marginals)
-        {
-            let lab=nodesf._data[n].label
-            let a = lab.split("\n");
-            let marginals=cur_marginals[n].mapElems(x=>x.toFixed(2))
-            let new_lab=a[0]+"\n"+marginals
-            network.body.nodes[n].setOptions({'label':new_lab})
-
-//            nodesf._data[n].label=new_lab
-        }
-
-
 
         for (node of Object.values(this.nodes))
             if (node instanceof Variable)
