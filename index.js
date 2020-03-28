@@ -988,9 +988,24 @@ class FactorGraph
     {
         let step = 0
         let epsilons = [1]
-        for (node of Object.values(this.nodes))
+        for (const node of Object.values(this.nodes))
             node.mailbox={}
         let cur_marginals = this.get_marginals()
+
+
+        for (const n in cur_marginals)
+        {
+            let lab=nodesf._data[n].label
+            let a = lab.split("\n");
+            let marginals=cur_marginals[n].mapElems(x=>x.toFixed(2))
+            let new_lab=a[0]+"\n"+marginals
+            network.body.nodes[n].setOptions({'label':new_lab})
+
+//            nodesf._data[n].label=new_lab
+        }
+
+
+
         for (node of Object.values(this.nodes))
             if (node instanceof Variable)
             {
@@ -1021,6 +1036,22 @@ class FactorGraph
                 }
             }
             cur_marginals = this.get_marginals()
+            for (const var_n in cur_marginals)
+            {
+                let var_node =nodesf.get(var_n);
+                let a = var_node['label'].split("\n");
+                let node_marg=cur_marginals[parseInt(var_n)]
+                let marginals=node_marg.mapElems(x=>x.toFixed(2))
+                let marg_arr=marginals.toNestedArray()
+                let new_lab=a[0]+"\n["+marg_arr+"]"
+//                var_node.setOptions({label:new_lab})
+                nodesf.update([{id: var_n, label: new_lab}]);
+//                network.redraw()
+
+                //                network.body.nodes[n].setOptions({'label':new_lab})
+//                nodes.update(node)
+//                nodesf._data[n].label=new_lab
+            }
 //            epsilons.push(this.confront_marginals(cur_marginals, last_marginals))
         }
 //        return epsilons[1:];
@@ -1103,6 +1134,7 @@ return epsilons;
         let vars=nodes_array.filter(x=>x instanceof Variable)
         for (const n of vars)
             marg[n.name]=n.marginal();
+        return marg
     }
 }
 
