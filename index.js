@@ -1130,7 +1130,7 @@ for (node in nodes._data)
         marginal_array=node_variable.marginal().toNestedArray();
         marginals=marginal_array.map(x=>x.toFixed(2))
         nodesf.add({
-            id: node,
+            id: parseInt(node),
             label: node_name+"\n["+marginals+"]",
             domain: node_domain,
 //            probability: {given: [], table: table},
