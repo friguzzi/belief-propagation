@@ -449,8 +449,6 @@ function load_network(xml){
     });
 }
 
-function save_network(){
-}
 
 network.on( 'click', function(properties) {
 	let option_selected = $("#name_choice").text();
@@ -1420,7 +1418,6 @@ function create_dynamic_observations() {
         let name = get_html_name(node.label);
         let options = "";
         for (const d in node.domain) {
-            console.log(d)
             options += get_html_option(d, node.domain[d]);
         }
         let choose = get_html_choose();
