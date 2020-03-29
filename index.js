@@ -16,7 +16,8 @@ let last_marginals
 let senders
 let sender
 let next_dests
-
+let old_edge_label
+let old_edge_id
 
 function delete_node(node_id) {
     let to_edges = get_to_edges_from_node(node_id);
@@ -728,6 +729,7 @@ $("#step").click(function() {
     g.step()
     if (step==2)
         $("#step").hide();
+    
 });
 
 $("#run").click(function() {
@@ -848,18 +850,20 @@ class Node {
         let lines=label.split("\n")
         let message=mu.value.mapElems(x=>x.toFixed(2))
         let mess_array=message.toNestedArray()
-
+        old_edge_id=edge_id
         if (this instanceof Factor)
         {
             let mess="v->f"+"["+mess_array+"]"
-            let new_lab=lines[0]+"\n"+mess
+            let new_lab=lines[0]+"\n<i>"+mess+"</i>"
             edgesf.update({id:edge_id,label:new_lab})
+            old_edge_label=lines[0]+"\n"+mess
         }
         else
         {
             let mess="f->v"+"["+mess_array+"]"
-            let new_lab=mess+"\n"+lines[1]
+            let new_lab="<i>"+mess+"</i>\n"+lines[1]
             edgesf.update({id:edge_id,label:new_lab})
+            old_edge_label=mess+"\n"+lines[1]
         }
     }
 }
@@ -1050,7 +1054,11 @@ class FactorGraph
             {
                 let message = new Mu(node, ones(node.size))
                 for (const dest of node.connections)
+                {
                     dest.propagate(step, message)
+                    edgesf.update({id:old_edge_id,label:old_edge_label})
+                }
+
             }
         let vars = nodes_global.filter(node=> node instanceof Variable)
         let fs = nodes_global.filter(node=>node instanceof Factor)
@@ -1062,6 +1070,7 @@ class FactorGraph
 
     step()
     {
+        edgesf.update({id:old_edge_id,label:old_edge_label})
 
         if (next_dests.length==0)
         {
@@ -1314,7 +1323,8 @@ for (node in nodes._data)
             label: factor_name,
         //            probability: {given: [], table: table},
             color: {background: "", border: "black"},
-            shape: "box"
+            shape: "box",
+            font: { multi: true }
         });
         factor = new Factor(node_id, probabilities)
         g.add(factor)
@@ -1343,8 +1353,9 @@ for (node in nodes._data)
                 id: max_e_id + 1,
                 from: parseInt(from),
                 to: parseInt(to),
-                label: "f->v\nv->f"
-            });
+                label: "f->v\nv->f",
+                font: { multi: true }
+                });
             g.connect(from,to);
             
          }
@@ -1358,7 +1369,8 @@ for (node in nodes._data)
             id: max_e_id + 1,
             from: parseInt(from),
             to: parseInt(variab),
-            label: "f->v\nv->f"
+            label: "f->v\nv->f",
+            font: { multi: true }
         });
      g.connect(from,factor['var'])
       }
