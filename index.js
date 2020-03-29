@@ -7,8 +7,15 @@ let edgesf = new vis.DataSet([]);
 let et = require('elementtree');
 let format = require('xml-formatter');
 const nd = require('nd4js');
-
+let step=0
+let cur_marginals;
+let epsilons;
 var g;
+let nodes_global = {}
+let last_marginals
+let senders
+let sender
+let next_dests
 
 
 function delete_node(node_id) {
@@ -706,6 +713,11 @@ $("#save_set_properties").click(function() {
     }
 });
 
+$("#step").click(function() {
+    g.step()
+    if (step==2)
+        $("#step").hide();
+});
 $("#compute_query").click(function() {
     /*
     Function that queries the server in order to compute the marginal for the specified node.
@@ -725,7 +737,7 @@ $("#compute_query").click(function() {
         observations[this.id] = choice.value;
     });
     observe(g, observations)
-    g.calculate_marginals(2,1e-4)
+    g.start()
 
 //    result = g.nodes[query_node_id].marginal()
 //    result = result.toNestedArray()
@@ -987,6 +999,79 @@ class FactorGraph
     {
         this.nodes = {}
     }
+
+    start()
+    {
+        step=1
+        epsilons = [1]
+        nodes_global=Object.values(this.nodes)
+
+        for (const node of nodes_global)
+            node.mailbox={}
+        cur_marginals = this.get_marginals()
+
+        for (node of nodes_global)
+            if (node instanceof Variable)
+            {
+                let message = new Mu(node, ones(node.size))
+                for (const dest of node.connections)
+                    dest.propagate(step, message)
+            }
+        let vars = nodes_global.filter(node=> node instanceof Variable)
+        let fs = nodes_global.filter(node=>node instanceof Factor)
+        senders = fs.concat(vars)
+        sender=senders.shift()
+        next_dests=[...sender.connections]
+
+    }
+
+    step()
+    {
+
+        if (next_dests.length==0)
+        {
+            if (senders.length==0)
+            {
+                step+=1
+                if (step==2)
+                    return
+                console.log("new step "+step)
+                let vars = nodes_global.filter(node=> node instanceof Variable)
+                let fs = nodes_global.filter(node=>node instanceof Factor)
+                senders = fs.concat(vars)
+            }
+
+            sender=senders.shift()
+            console.log("new sender "+sender.name)
+            next_dests = [...sender.connections]
+        }
+
+        let dest=next_dests.shift()
+        let value = sender.create_message(dest)
+        console.log(dest.name)
+        console.log(value.toString())
+        let msg =new  Mu(sender, value)
+        dest.propagate(step, msg)
+        cur_marginals = this.get_marginals()
+        for (const var_n in cur_marginals)
+        {
+            let var_node =nodesf.get(var_n);
+            let a = var_node['label'].split("\n");
+            let node_marg=cur_marginals[parseInt(var_n)]
+            let marginals=node_marg.mapElems(x=>x.toFixed(2))
+            let marg_arr=marginals.toNestedArray()
+            let new_lab=a[0]+"\n["+marg_arr+"]"
+//                var_node.setOptions({label:new_lab})
+            nodesf.update([{id: var_n, label: new_lab}]);
+//                network.redraw()
+
+            //                network.body.nodes[n].setOptions({'label':new_lab})
+//                nodes.update(node)
+//                nodesf._data[n].label=new_lab
+        }
+//            epsilons.push(this.confront_marginals(cur_marginals, last_marginals))
+    }
+
 
     calculate_marginals(max_iterations, tol)
     //calculate_marginals(max_iterations=1000, tol=1e-5)
