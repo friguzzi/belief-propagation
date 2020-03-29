@@ -723,6 +723,7 @@ $("#compute_query").click(function() {
     observations = {}
     $("#observations > div.row").find("div.btn-group").each(function() {
         let choice = $(this).find("label.active > input")[0];
+        console.log('choice '+choice)
         observations[this.id] = choice.value;
     });
     observe(g, observations)
@@ -766,8 +767,13 @@ $("#compute_query").click(function() {
 function observe(graph, observations)
 {
     for (o in observations)
+    {
         if (observations[o]>=0)
-            graph.set_evidence(o, observations[o] + 1)
+        {
+            graph.set_evidence(o, observations[o])
+        }
+        console.log(o)
+    }
 }
 function ones(size)
 {
@@ -1080,7 +1086,7 @@ return epsilons;
     set_evidence(name, state)
     {
         node = this.nodes[name]
-        node.observed_state=parseInt(state)-1
+        node.observed_state=parseInt(state)
  
         factors=node.connections.filter(conn=> conn instanceof Factor)
         for (const f of factors)
@@ -1107,7 +1113,7 @@ return epsilons;
                     if (sl!=del_ax)
                         slice.push([,,])
                     else
-                        slice.push(parseInt(state)-1)
+                        slice.push(parseInt(state))
                 }
                 f.potential = f.potential.sliceElems(...slice)
                 console.log(f.potential)
@@ -1414,6 +1420,7 @@ function create_dynamic_observations() {
         let name = get_html_name(node.label);
         let options = "";
         for (const d in node.domain) {
+            console.log(d)
             options += get_html_option(d, node.domain[d]);
         }
         let choose = get_html_choose();
