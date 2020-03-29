@@ -216,6 +216,17 @@ function get_id_from_label_node(string)
     }
 }
 
+function get_edge_id_from_endpoints(src,dest)
+{
+    for (const e in edgesf._data)
+    {
+        let edge=edgesf._data[e]
+        if ((edge.from==src && edge.to==dest)||
+        (edge.from==dest && edge.to==src))
+            return edge.id    
+    }
+}
+
 function get_factor_id_from_label_node(string)
 {
     for (const e in nodesf._data) {
@@ -826,6 +837,24 @@ class Node {
         {
             this.mailbox[step_number].push(mu);
         }
+        let edge_id=get_edge_id_from_endpoints(this.name,mu.source_node.name)
+        let label=edgesf.get(edge_id).label
+        let lines=label.split("\n")
+        let message=mu.value.mapElems(x=>x.toFixed(2))
+        let mess_array=message.toNestedArray()
+
+        if (this instanceof Factor)
+        {
+            let mess="v->f"+"["+mess_array+"]"
+            let new_lab=lines[0]+"\n"+mess
+            edgesf.update({id:edge_id,label:new_lab})
+        }
+        else
+        {
+            let mess="f->v"+"["+mess_array+"]"
+            let new_lab=mess+"\n"+lines[1]
+            edgesf.update({id:edge_id,label:new_lab})
+        }
     }
 }
 
@@ -1308,7 +1337,7 @@ for (node in nodes._data)
                 id: max_e_id + 1,
                 from: parseInt(from),
                 to: parseInt(to),
-                label: "f->v[1,1]\nv->f[1,1]"
+                label: "f->v\nv->f"
             });
             g.connect(from,to);
             
@@ -1323,7 +1352,7 @@ for (node in nodes._data)
             id: max_e_id + 1,
             from: parseInt(from),
             to: parseInt(variab),
-            label: "f->v[1,1]\nv->f[1,1]"
+            label: "f->v\nv->f"
         });
      g.connect(from,factor['var'])
       }
