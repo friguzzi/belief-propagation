@@ -729,6 +729,12 @@ $("#step").click(function() {
     if (step==2)
         $("#step").hide();
 });
+
+$("#run").click(function() {
+    while (step<2)
+        g.step()
+});
+
 $("#compute_query").click(function() {
     /*
     Function that queries the server in order to compute the marginal for the specified node.
