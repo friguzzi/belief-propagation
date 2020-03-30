@@ -756,6 +756,23 @@ $("#compute_query").click(function() {
         observations[this.id] = choice.value;
     });
     observe(g, observations)
+    cur_marginals = g.get_marginals()
+    for (const var_n in cur_marginals)
+    {
+        let var_node =nodesf.get(var_n);
+        let a = var_node['label'].split("\n");
+        let node_marg=cur_marginals[parseInt(var_n)]
+        let marginals=node_marg.mapElems(x=>x.toFixed(2))
+        let marg_arr=marginals.toNestedArray()
+        let new_lab=a[0]+"\n["+marg_arr+"]"
+//                var_node.setOptions({label:new_lab})
+        nodesf.update([{id: var_n, label: new_lab}]);
+//                network.redraw()
+
+        //                network.body.nodes[n].setOptions({'label':new_lab})
+//                nodes.update(node)
+//                nodesf._data[n].label=new_lab
+    }    
     g.start()
 
 //    result = g.nodes[query_node_id].marginal()
@@ -1041,7 +1058,7 @@ class FactorGraph
 
     start()
     {
-        step=1
+        step=0
         epsilons = [1]
         nodes_global=Object.values(this.nodes)
 
@@ -1074,20 +1091,24 @@ class FactorGraph
 
         if (next_dests.length==0)
         {
-            if (senders.length==0)
+            do
             {
-                step+=1
-                if (step==2)
-                    return
-                console.log("new step "+step)
-                let vars = nodes_global.filter(node=> node instanceof Variable)
-                let fs = nodes_global.filter(node=>node instanceof Factor)
-                senders = fs.concat(vars)
+                if (senders.length==0)
+                {
+                    step+=1
+                    if (step==2)
+                        return
+                    console.log("new step "+step)
+                    let vars = nodes_global.filter(node=> node instanceof Variable)
+                    let fs = nodes_global.filter(node=>node instanceof Factor)
+                    senders = fs.concat(vars)
+                }
+                else
+                    sender=senders.shift()
+                console.log("new sender "+sender.name)
+                next_dests = [...sender.connections]
             }
-
-            sender=senders.shift()
-            console.log("new sender "+sender.name)
-            next_dests = [...sender.connections]
+            while (next_dests.length==0)
         }
 
         let dest=next_dests.shift()
