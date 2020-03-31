@@ -728,16 +728,21 @@ $("#save_set_properties").click(function() {
 $("#step").click(function() {
     g.step()
     if (step==2)
-        $("#step").hide();
+    {
+        $('#step').attr('disabled',true)
+        $('#run').attr('disabled',true)
+    }
     
 });
 
 $("#run").click(function() {
+    $('#start').attr('disabled',true)
+    $('#step').attr('disabled',true)
     while (step<2)
         g.step()
 });
 
-$("#compute_query").click(function() {
+$("#start").click(function() {
     /*
     Function that queries the server in order to compute the marginal for the specified node.
     It also considers observations (evidences) that were set previously in the specific section of the page.
@@ -774,6 +779,9 @@ $("#compute_query").click(function() {
 //                nodesf._data[n].label=new_lab
     }    
     g.start()
+    $('#start').attr('disabled',true)
+    $("#step").removeAttr("disabled");
+    $("#run").removeAttr("disabled");
 
 //    result = g.nodes[query_node_id].marginal()
 //    result = result.toNestedArray()
