@@ -871,14 +871,14 @@ class Node {
         if (this instanceof Factor)
         {
             let mess="v->f"+"["+mess_array+"]"
-            let new_lab=lines[0]+"\n<i>"+mess+"</i>"
+            let new_lab=lines[0]+"\n<b>"+mess+"</b>"
             edgesf.update({id:edge_id,label:new_lab})
             old_edge_label=lines[0]+"\n"+mess
         }
         else
         {
             let mess="f->v"+"["+mess_array+"]"
-            let new_lab="<i>"+mess+"</i>\n"+lines[1]
+            let new_lab="<b>"+mess+"</b>\n"+lines[1]
             edgesf.update({id:edge_id,label:new_lab})
             old_edge_label=mess+"\n"+lines[1]
         }
