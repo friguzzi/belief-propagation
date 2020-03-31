@@ -2,6 +2,7 @@ let nodes = new vis.DataSet([]);
 let edges = new vis.DataSet([]);
 let container = document.getElementById('graph');
 let network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
+let networkf
 let nodesf = new vis.DataSet([]);
 let edgesf = new vis.DataSet([]);
 let et = require('elementtree');
@@ -782,6 +783,15 @@ $("#start").click(function() {
     $('#start').attr('disabled',true)
     $("#step").removeAttr("disabled");
     $("#run").removeAttr("disabled");
+    networkf.on("hoverNode", function (params) {
+        console.log('hoverNode Event:', params);
+        let node_marg=cur_marginals[params.node]
+        let marg_arr=node_marg.toNestedArray()
+        let title="["+marg_arr+"]"
+
+            let node = nodesf.get(params.node);
+            nodesf.update({id:params.node, 'title':title})
+    })
 
 //    result = g.nodes[query_node_id].marginal()
 //    result = result.toNestedArray()
@@ -1299,7 +1309,7 @@ function build_graph()
 {
     nodesf.clear();
     edgesf.clear();
-    let networkf = new vis.Network(container, {nodes: nodesf, edges: edgesf}, {});
+    networkf = new vis.Network(container, {nodes: nodesf, edges: edgesf}, { interaction:{hover:true}});
     single_factors = {}
     g = new FactorGraph()
     let max_id_nodes;
