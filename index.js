@@ -787,6 +787,12 @@ $("#start").click(function() {
 //                nodesf._data[n].label=new_lab
     }    
     g.start()
+    for (const n of nodes_global)
+        if (n instanceof Factor)
+        {
+            let title = "["+n.potential.toNestedArray()+"]"
+            nodesf.update({id:n.name,'title':title})
+        }
     $('#start').attr('disabled',true)
     $("#step").removeAttr("disabled");
     $("#run").removeAttr("disabled");
