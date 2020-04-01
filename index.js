@@ -789,12 +789,16 @@ $("#start").click(function() {
     $("#run").removeAttr("disabled");
     networkf.on("hoverNode", function (params) {
         console.log('hoverNode Event:', params);
-        let node_marg=cur_marginals[params.node]
-        let marg_arr=node_marg.toNestedArray()
-        let title="["+marg_arr+"]"
+        let node_fg=nodes_global[params.node]
+        if (node_fg instanceof Variable)
+        {
+            let node_marg=cur_marginals[params.node]
+            let marg_arr=node_marg.toNestedArray()
+            let title="["+marg_arr+"]"
 
-            let node = nodesf.get(params.node);
-            nodesf.update({id:params.node, 'title':title})
+                let node = nodesf.get(params.node);
+                nodesf.update({id:params.node, 'title':title})
+        }
     })
 
 //    result = g.nodes[query_node_id].marginal()
