@@ -401,15 +401,21 @@ $("#button_open_file_hidden").change(function() {
 
 });
 
-$("#example").click(function(params)
+$(".example").click(function(params)
 {
     console.log(params);
     let file="XMLBIF%20Examples/"+params.target.text
     $.ajax({
         'url': file,
+        type: "GET",
+        dataType: "xml",
         success: function (response) {
             console.log(response);
-            load_network(response)
+            var ns = new XMLSerializer();
+            var ss= ns.serializeToString(response);
+            let xmlDoc = $.parseXML(ss);
+            let $xml = $(xmlDoc);
+            load_network($xml)
         },
     });
 
