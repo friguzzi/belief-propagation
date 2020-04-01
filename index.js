@@ -799,7 +799,9 @@ $("#start").click(function() {
     networkf.on("hoverNode", function (params) {
         console.log('hoverNode Event:', params);
     })
-
+    networkf.on("hoverEdge", function (params) {
+        console.log('hoverEdge Event:', params);
+    })
 //    result = g.nodes[query_node_id].marginal()
 //    result = result.toNestedArray()
  //   result = [round(x, 4) for x in result]
@@ -889,22 +891,29 @@ class Node {
         }
         let edge_id=get_edge_id_from_endpoints(this.name,mu.source_node.name)
         let label=edgesf.get(edge_id).label
+        let title=edgesf.get(edge_id).title
         let lines=label.split("\n")
         let message=mu.value.mapElems(x=>x.toFixed(2))
         let mess_array=message.toNestedArray()
+        let full_mess_array=mu.value.toNestedArray()
+        let title_lines=title.split("<br>")
         old_edge_id=edge_id
         if (this instanceof Factor)
         {
             let mess="v->f"+"["+mess_array+"]"
             let new_lab=lines[0]+"\n<b>"+mess+"</b>"
-            edgesf.update({id:edge_id,label:new_lab})
+            let title_mess="v->f"+"["+full_mess_array+"]"
+            let new_title=title_lines[0]+"<br>"+title_mess
+            edgesf.update({id:edge_id,label:new_lab,'title':new_title})
             old_edge_label=lines[0]+"\n"+mess
         }
         else
         {
             let mess="f->v"+"["+mess_array+"]"
             let new_lab="<b>"+mess+"</b>\n"+lines[1]
-            edgesf.update({id:edge_id,label:new_lab})
+            let title_mess="f->v"+"["+full_mess_array+"]"
+            let new_title=title_mess+"<br>"+title_lines[1]
+            edgesf.update({id:edge_id,label:new_lab,'title':new_title})
             old_edge_label=mess+"\n"+lines[1]
         }
     }
@@ -1406,6 +1415,7 @@ for (node in nodes._data)
                 from: parseInt(from),
                 to: parseInt(to),
                 label: "f->v\nv->f",
+                title: "f->v<br>v->f",
                 font: { multi: true }
                 });
             g.connect(from,to);
@@ -1422,6 +1432,7 @@ for (node in nodes._data)
             from: parseInt(from),
             to: parseInt(variab),
             label: "f->v\nv->f",
+            title: "f->v<br>v->f",
             font: { multi: true }
         });
      g.connect(from,factor['var'])
