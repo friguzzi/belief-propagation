@@ -775,8 +775,11 @@ $("#start").click(function() {
         let marginals=node_marg.mapElems(x=>x.toFixed(2))
         let marg_arr=marginals.toNestedArray()
         let new_lab=a[0]+"\n["+marg_arr+"]"
+        let full_marg_arr=node_marg.toNestedArray()
+        let title="["+full_marg_arr+"]"
+        
 //                var_node.setOptions({label:new_lab})
-        nodesf.update([{id: var_n, label: new_lab}]);
+        nodesf.update([{id: var_n, label: new_lab, 'title':title}]);
 //                network.redraw()
 
         //                network.body.nodes[n].setOptions({'label':new_lab})
@@ -789,16 +792,6 @@ $("#start").click(function() {
     $("#run").removeAttr("disabled");
     networkf.on("hoverNode", function (params) {
         console.log('hoverNode Event:', params);
-        let node_fg=nodes_global[params.node]
-        if (node_fg instanceof Variable)
-        {
-            let node_marg=cur_marginals[params.node]
-            let marg_arr=node_marg.toNestedArray()
-            let title="["+marg_arr+"]"
-
-                let node = nodesf.get(params.node);
-                nodesf.update({id:params.node, 'title':title})
-        }
     })
 
 //    result = g.nodes[query_node_id].marginal()
@@ -1153,7 +1146,13 @@ class FactorGraph
             let marg_arr=marginals.toNestedArray()
             let new_lab=a[0]+"\n["+marg_arr+"]"
 //                var_node.setOptions({label:new_lab})
-            nodesf.update([{id: var_n, label: new_lab}]);
+            let full_marg_arr=node_marg.toNestedArray()
+            let title="["+full_marg_arr+"]"
+
+            //                var_node.setOptions({label:new_lab})
+            nodesf.update([{id: var_n, label: new_lab, 'title':title}]);
+
+//            nodesf.update([{id: var_n, label: new_lab}]);
 //                network.redraw()
 
             //                network.body.nodes[n].setOptions({'label':new_lab})
