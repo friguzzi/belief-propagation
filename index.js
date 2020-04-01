@@ -184,6 +184,76 @@ function generate_index_arrays(node_id) {
     return index_arrays;
 }
 
+
+function generate_index_arrays_factor(node_id) {
+    /*
+    This function generates all the index arrays for the specified Node. The way it works is by first considering the
+    domains of all the Given Nodes (the source nodes) and then generating, in the correct logical order, all the
+    possible combinations of indexes.
+    This functions works through iteration and not recursion.
+
+    Example:
+
+    Domains:
+    Node 1: (T, F)
+    Node 2: (T, F)
+    Node 3: (A, B, C)
+
+    Output:
+    [0, 0, 0]
+    [0, 0, 1]
+    [0, 0, 2]
+    [0, 1, 0]
+    [0, 1, 1]
+    [0, 1, 2]
+    [1, 0, 0]
+    [1, 0, 1]
+    ...
+     */
+    let node = nodesf.get(node_id);
+    let factor=nodes_global[node_id]
+    let given = factor.connections
+    let g_id;
+    let g_node;
+    let index_arrays = [];
+    let combs = 1;
+    for (const g in given) {
+        g_id = given[g];
+        g_node = nodesf.get(g_id.name);
+        combs *= g_node.domain.length;
+    }
+    for (let i = 0; i < combs; i++) {
+        index_arrays.push([]);
+    }
+    for (const g in given) {
+        g_id = given[g];
+        g_node = nodesf.get(g_id.name);
+        let g2_id;
+        let g2_node;
+        let combs_g_fwd = 1;
+        let combs_g_bwd = 1;
+        for (const g2 in given) {
+            g2_id = given[g2];
+            g2_node = nodesf.get(g2_id.name);
+            if (g2 > g) {
+                combs_g_fwd *= g2_node.domain.length;
+            }
+            if (g2 < g) {
+                combs_g_bwd *= g2_node.domain.length;
+            }
+        }
+        for (let times = 0; times < combs_g_bwd; times++) {
+            for (const d in g_node.domain) {
+                for (let i = 0; i < combs_g_fwd; i++) {
+                    index_arrays[times * combs_g_fwd * g_node.domain.length + parseInt(d) * combs_g_fwd + i].push(parseInt(d));
+                }
+            }
+        }
+    }
+
+    return index_arrays;
+}
+
 function get_nodes_indip()
 {
     /*
@@ -790,7 +860,7 @@ $("#start").click(function() {
     for (const n of nodes_global)
         if (n instanceof Factor)
         {
-            let title = "["+n.potential.toNestedArray()+"]"
+            let title=create_factor_table(n.name)
             nodesf.update({id:n.name,'title':title})
         }
     $('#start').attr('disabled',true)
@@ -1482,6 +1552,41 @@ for (node in nodes._data)
     return g
     
     
+}
+
+
+function create_factor_table(node_id) {
+    let node = nodes_global[node_id];
+    let table = "<table>";
+    table += "<thead id='thead'><tr>";
+    let str;
+    if (node.connections.length == 0) {
+            str =  node.potential(0);
+            table += "<td>" + str + "</td></tr></thead>";
+    } else {
+        let node_from;
+        for (const i in node.connections) {
+            node_from=nodesf.get(node.connections[i].name)
+            let lab=node_from.label
+            node_from_la = lab.split("\n")
+            table += "<th>" + node_from_la[0] + "</th>";
+        }
+        table += "<th>val</th></tr></thead><tbody>";
+        let prob = generate_index_arrays_factor(node_id);
+        for (const p in prob) {
+                let index = prob[p];
+                for (const element in index) {
+                    let node_id = node.connections[element].name;
+                    let node_id_domain = nodes.get(node_id).domain;
+                    str = node_id_domain[index[element]];
+                    table += "<td>" + str + "</td>";
+                }
+                let prob_value = node.potential(...index);
+                table += "<td style='text-align: center'>" + prob_value + "</td></tr>";
+        }
+    }
+    table += "</tbody></table></div>";
+    return table
 }
 
 
