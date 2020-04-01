@@ -401,6 +401,20 @@ $("#button_open_file_hidden").change(function() {
 
 });
 
+$("#example").click(function(params)
+{
+    console.log(params);
+    let file="XMLBIF%20Examples/"+params.target.text
+    $.ajax({
+        'url': file,
+        success: function (response) {
+            console.log(response);
+            load_network(response)
+        },
+    });
+
+})
+
 $("#button_save_file").click(function() {
     /*
     Function to query the server to generate a valid XMLBIF file to be saved from the current network.
