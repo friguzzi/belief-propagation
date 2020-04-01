@@ -604,6 +604,9 @@ $("#button_query").click(function() {
 
     create_dynamic_observations();
     g=build_graph()
+    $('#start').removeAttr("disabled");
+    $("#step").attr("disabled",true);
+    $("#run").attr("disabled",true);
 });
 
 $("#save_create_node").click(function() {
@@ -739,6 +742,7 @@ $("#step").click(function() {
 $("#run").click(function() {
     $('#start').attr('disabled',true)
     $('#step').attr('disabled',true)
+    $("#run").attr("disabled",true);        
     while (step<2)
         g.step()
 });
