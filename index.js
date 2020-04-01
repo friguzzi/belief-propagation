@@ -1562,7 +1562,8 @@ function create_factor_table(node_id) {
     let str;
     if (node.connections.length == 0) {
             str =  node.potential(0);
-            table += "<td>" + str + "</td></tr></thead>";
+            let nodef = nodesf.get(node_id)
+            table += "<th>"+nodef.label+"</th></tr></thead><tbody><tr><td>" + str + "</td></tr>";
     } else {
         let node_from;
         for (const i in node.connections) {
@@ -1571,7 +1572,8 @@ function create_factor_table(node_id) {
             node_from_la = lab.split("\n")
             table += "<th>" + node_from_la[0] + "</th>";
         }
-        table += "<th>val</th></tr></thead><tbody>";
+        let nodef = nodesf.get(node_id)
+        table += "<th>"+nodef.label+"</th></tr></thead><tbody>";
         let prob = generate_index_arrays_factor(node_id);
         for (const p in prob) {
                 let index = prob[p];
