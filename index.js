@@ -345,6 +345,8 @@ function hide_error_success() {
 $("#button_new").click(function() {
     nodes.clear();
     edges.clear();
+    network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
+
 });
 
 $("#button_open_file_hidden").change(function() {
@@ -461,6 +463,7 @@ function load_network(xml){
      */
     nodes.clear();
     edges.clear();
+    network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
 
     let center_x = 0;
     let center_y = 0;
