@@ -346,6 +346,20 @@ $("#button_new").click(function() {
     nodes.clear();
     edges.clear();
     network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
+    $("#name_choice").text("Select a button please...");
+    $("#error_dialog").hide();
+    $("#success").hide();
+    $("#div_create_node").hide();
+    $("#div_create_edge").hide();
+    $("#div_delete_node").hide();
+    $("#div_delete_edge").hide();
+    $("#div_set_properties").hide();
+    $("#div_probability_table").hide();
+    $("#div_query").hide();
+    $("#help_message").hide();
+    $("#div_create_nodes").hide();
+
+    
 
 });
 
@@ -372,6 +386,19 @@ $("#button_open_file_hidden").change(function() {
         let $xml = $(xmlDoc);
         load_network($xml);
     }
+    $("#error_dialog").hide();
+    $("#success").hide();
+    $("#div_create_node").hide();
+    $("#div_create_edge").hide();
+    $("#div_delete_node").hide();
+    $("#div_delete_edge").hide();
+    $("#div_set_properties").hide();
+    $("#div_probability_table").hide();
+    $("#div_query").hide();
+    $("#help_message").hide();
+    $("#div_create_nodes").hide();
+    $("#name_choice").text("Select a button please...");
+
 });
 
 $("#button_save_file").click(function() {
@@ -849,7 +876,13 @@ $("#start").click(function() {
         let marg_arr=marginals.toNestedArray()
         let new_lab=a[0]+"\n["+marg_arr+"]"
         let full_marg_arr=node_marg.toNestedArray()
-        let title="["+full_marg_arr+"]"
+        let title="<table><thead><tr>"
+        for (const index in full_marg_arr)
+            title+="<th>"+var_node.domain[index]+"</th>"
+        title+="</tr></thead><tbody><tr>"
+        for (const index in full_marg_arr)
+           title+="<td>"+full_marg_arr[index]+"</td>"
+           title+="</tr></tbody></table>"
         
 //                var_node.setOptions({label:new_lab})
         nodesf.update([{id: var_n, label: new_lab, 'title':title}]);
@@ -1235,8 +1268,13 @@ class FactorGraph
             let new_lab=a[0]+"\n["+marg_arr+"]"
 //                var_node.setOptions({label:new_lab})
             let full_marg_arr=node_marg.toNestedArray()
-            let title="["+full_marg_arr+"]"
-
+            let title="<table><thead><tr>"
+            for (const index in full_marg_arr)
+                title+="<th>"+var_node.domain[index]+"</th>"
+            title+="</tr></thead><tbody><tr>"
+            for (const index in full_marg_arr)
+                title+="<td>"+full_marg_arr[index]+"</td>"
+            title+="</tr></tbody></table>"
             //                var_node.setOptions({label:new_lab})
             nodesf.update([{id: var_n, label: new_lab, 'title':title}]);
 
