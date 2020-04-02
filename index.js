@@ -19,6 +19,7 @@ let sender
 let next_dests
 let old_edge_label
 let old_edge_id
+let already_selected_node
 
 activate_interactions()
 
@@ -626,6 +627,19 @@ network.on( 'click', function(properties) {
         delete_edge(edge.id);
         $("#success").show();
     }
+    else if(option_selected==="Create Edge")
+        if (already_selected_node!=undefined && properties.nodes.length === 1)
+        {
+            let node = nodes.get(properties.nodes[0]);
+            create_edge(already_selected_node,node.id)
+            already_selected_node=undefined
+        }
+        else
+            if (properties.nodes.length === 1)
+            {
+                already_selected_node=nodes.get(properties.nodes[0]).id;
+            }
+
 });
 }
 $("#button_create_node").click(function() {
@@ -818,28 +832,32 @@ $("#save_create_edge").click(function() {
         $("#error_dialog").show();
     else
     {
-        let max_id;
-        if (edges.length == 0) {
-            max_id = -1;
-        } else {
-            max_id = Math.max(...Object.keys(edges._data));
-        }
         let from_id = get_id_from_label_node(from);
         let to_id = get_id_from_label_node(to);
-        edges.add({
-            id: max_id + 1,
-            from: parseInt(from_id),
-            to: parseInt(to_id),
-            arrows: 'to'
-        });
-        let to_node = nodes.get(to_id);
-        to_node.probability.given.push(from_id);
-        update_probabilities(to_id);
-        $("#error_dialog").hide();
-        $("#success").show();
+        create_edge(from_id,to_id)
     }
 });
+function create_edge(from_id, to_id)
+{
+    let max_id;
+    if (edges.length == 0) {
+        max_id = -1;
+    } else {
+        max_id = Math.max(...Object.keys(edges._data));
+    }
+    edges.add({
+        id: max_id + 1,
+        from: parseInt(from_id),
+        to: parseInt(to_id),
+        arrows: 'to'
+    });
+    let to_node = nodes.get(to_id);
+    to_node.probability.given.push(from_id);
+    update_probabilities(to_id);
+    $("#error_dialog").hide();
+    $("#success").show();
 
+}
 $("#save_delete_node").click(function() {
     hide_error_success();
 
