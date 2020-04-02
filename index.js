@@ -20,6 +20,8 @@ let next_dests
 let old_edge_label
 let old_edge_id
 
+activate_interactions()
+
 function delete_node(node_id) {
     let to_edges = get_to_edges_from_node(node_id);
     let from_edges = get_from_edges_to_node(node_id);
@@ -346,6 +348,7 @@ $("#button_new").click(function() {
     nodes.clear();
     edges.clear();
     network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
+    activate_interactions()
     $("#name_choice").text("Select a button please...");
     $("#error_dialog").hide();
     $("#success").hide();
@@ -587,9 +590,11 @@ function load_network(xml){
         node.probability.given = given_nodes_id;
         node.probability.table = probability_table;
     });
+    activate_interactions()
 }
 
-
+function activate_interactions()
+{
 network.on( 'click', function(properties) {
 	let option_selected = $("#name_choice").text();
 
@@ -622,11 +627,10 @@ network.on( 'click', function(properties) {
         $("#success").show();
     }
 });
-
+}
 $("#button_create_node").click(function() {
     $("#error_dialog").hide();
     $("#success").hide();
-    $("#name_choice").text("Create Node");
     $("#div_create_edge").hide();
     $("#div_delete_node").hide();
     $("#div_delete_edge").hide();
@@ -635,12 +639,19 @@ $("#button_create_node").click(function() {
     $("#div_query").hide();
     $("#help_message").hide();
     $("#div_create_nodes").show();
+
+    if ($("#name_choice").text()=="Compute Query")
+    {
+        network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
+        activate_interactions()
+    }
+    $("#name_choice").text("Create Node");
+
 });
 
 $("#button_create_edge").click(function() {
     $("#error_dialog").hide();
     $("#success").hide();
-    $("#name_choice").text("Create Edge");
     $("#div_create_nodes").hide();
     $("#div_delete_node").hide();
     $("#div_delete_edge").hide();
@@ -649,12 +660,19 @@ $("#button_create_edge").click(function() {
     $("#div_query").hide();
     $("#help_message").hide();
     $("#div_create_edge").show();
+
+    if ($("#name_choice").text()=="Compute Query")
+    {
+        network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
+        activate_interactions()
+    }
+    $("#name_choice").text("Create Edge");
+
 });
 
 $("#button_delete_node").click(function() {
     $("#error_dialog").hide();
     $("#success").hide();
-    $("#name_choice").text("Delete Node");
     $("#div_create_nodes").hide();
     $("#div_delete_edge").hide();
     $("#div_set_properties").hide();
@@ -663,12 +681,19 @@ $("#button_delete_node").click(function() {
     $("#div_query").hide();
     $("#help_message").hide();
     $("#div_delete_node").show();
+    
+    if ($("#name_choice").text()=="Compute Query")
+    {
+        network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
+        activate_interactions()
+    }
+    $("#name_choice").text("Delete Node");
+
 });
 
 $("#button_delete_edge").click(function() {
     $("#error_dialog").hide();
     $("#success").hide();
-    $("#name_choice").text("Delete Edge");
     $("#div_create_nodes").hide();
     $("#div_set_properties").hide();
     $("#div_create_edge").hide();
@@ -677,12 +702,19 @@ $("#button_delete_edge").click(function() {
     $("#div_query").hide();
     $("#help_message").hide();
     $("#div_delete_edge").show();
+
+    if ($("#name_choice").text()=="Compute Query")
+    {
+        network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
+        activate_interactions()
+    }
+    $("#name_choice").text("Delete Edge");
+
 });
 
 $("#button_set_properties").click(function() {
     $("#error_dialog").hide();
     $("#success").hide();
-    $("#name_choice").text("Set Properties");
     $("#div_create_nodes").hide();
     $("#div_create_edge").hide();
     $("#div_delete_node").hide();
@@ -691,12 +723,19 @@ $("#button_set_properties").click(function() {
     $("#div_query").hide();
     $("#help_message").hide();
     $("#div_set_properties").show();
+
+    if ($("#name_choice").text()=="Compute Query")
+    {
+        network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
+        activate_interactions()
+    }
+    $("#name_choice").text("Set Properties");
+
 });
 
 $("#button_probability_table").click(function() {
     $("#success").hide();
     $("#error_dialog").hide();
-    $("#name_choice").text("Probability Table");
     $("#div_create_nodes").hide();
     $("#div_create_edge").hide();
     $("#div_delete_node").hide();
@@ -705,6 +744,13 @@ $("#button_probability_table").click(function() {
     $("#div_query").hide();
     $("#help_message").hide();
     $("#div_probability_table").show();
+
+    if ($("#name_choice").text()=="Compute Query")
+    {
+        network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
+        activate_interactions()
+    }
+    $("#name_choice").text("Probability Table");
 
     color_nodes_indip();
 });
