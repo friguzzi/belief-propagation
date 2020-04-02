@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BIF VERSION="0.3"  xmlns="http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3 http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3/XMLBIFv0_3.xsd">
+<NETWORK>
+<NAME>Simple Diagnostic Example</NAME>
+<PROPERTY>detailed = This is example 6.14, shown in Figure 6.3 of Poole and Mackworth, Artificial Intelligence: foundations of computational agents. Copyright Poole and Mackworth, 2009. This may be used under a Creative Commons Attribution-Noncommercial-Share Alike 2.5 Canada License http://creativecommons.org/licenses/by-nc-sa/2.5/ca/</PROPERTY>
+<PROPERTY>short = Influenza and Smoking Example of Poole and Mackworth, Artificial Intelligence.</PROPERTY>
+
+<VARIABLE TYPE="nature">
+	<NAME>Influenza</NAME>
+	<OUTCOME>T</OUTCOME>
+	<OUTCOME>F</OUTCOME>
+	<PROPERTY>position = (7469.56005859375, 5047.83251953125)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>Sore Throat</NAME>
+	<OUTCOME>T</OUTCOME>
+	<OUTCOME>F</OUTCOME>
+	<PROPERTY>position = (7177.0078125, 5191.38330078125)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>Fever</NAME>
+	<OUTCOME>T</OUTCOME>
+	<OUTCOME>F</OUTCOME>
+	<PROPERTY>position = (7425.95068359375, 5204.103515625)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>Bronchitis</NAME>
+	<OUTCOME>T</OUTCOME>
+	<OUTCOME>F</OUTCOME>
+	<PROPERTY>position = (7656.7216796875, 5209.55419921875)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>Wheezing</NAME>
+	<OUTCOME>T</OUTCOME>
+	<OUTCOME>F</OUTCOME>
+	<PROPERTY>position = (7812.9921875, 5402.16748046875)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>Smokes</NAME>
+	<OUTCOME>T</OUTCOME>
+	<OUTCOME>F</OUTCOME>
+	<PROPERTY>position = (7809.35791015625, 5047.83251953125)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>Coughing</NAME>
+	<OUTCOME>T</OUTCOME>
+	<OUTCOME>F</OUTCOME>
+	<PROPERTY>position = (7540.42724609375, 5398.533203125)</PROPERTY>
+</VARIABLE>
+
+<DEFINITION>
+	<FOR>Influenza</FOR>
+	<TABLE>0.05 0.95</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>Sore Throat</FOR>
+	<GIVEN>Influenza</GIVEN>
+	<TABLE>0.3 0.7 0.001 0.999</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>Fever</FOR>
+	<GIVEN>Influenza</GIVEN>
+	<TABLE>0.9 0.1 0.05 0.95</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>Bronchitis</FOR>
+	<GIVEN>Influenza</GIVEN>
+	<GIVEN>Smokes</GIVEN>
+	<TABLE>0.99 0.01 0.9 0.1 0.7 0.3 1.0E-4 0.9999</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>Wheezing</FOR>
+	<GIVEN>Bronchitis</GIVEN>
+	<TABLE>0.6 0.4 0.001 0.999</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>Smokes</FOR>
+	<TABLE>0.2 0.8</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>Coughing</FOR>
+	<GIVEN>Bronchitis</GIVEN>
+	<TABLE>0.8 0.2 0.07 0.93</TABLE>
+</DEFINITION>
+</NETWORK>
+</BIF>

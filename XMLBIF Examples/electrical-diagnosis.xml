@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BIF VERSION="0.3"  xmlns="http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3 http://www.cs.ubc.ca/labs/lci/fopi/ve/XMLBIFv0_3/XMLBIFv0_3.xsd">
+<NETWORK>
+<NAME>Electrical Diagnosis Problem</NAME>
+<PROPERTY>detailed = This example models the problem of diagnosing the electrical system of a house. This is Figure 6.2 and Example 6.11 of Poole and Mackworth, Artificial Intelligence: foundations of computational agents. Copyright Poole and Mackworth, 2010. This may be used under a Creative Commons Attribution-Noncommercial-Share Alike 2.5 Canada License http://creativecommons.org/licenses/by-nc-sa/2.5/ca/</PROPERTY>
+<PROPERTY>short = Electrical Diagnosis Example of Poole and Mackworth, Artificial Intelligence.</PROPERTY>
+
+<VARIABLE TYPE="nature">
+	<NAME>outside_power</NAME>
+	<OUTCOME>on</OUTCOME>
+	<OUTCOME>off</OUTCOME>
+	<PROPERTY>position = (7556.85986328125, 5046.2822265625)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>cb1_st</NAME>
+	<OUTCOME>on</OUTCOME>
+	<OUTCOME>off</OUTCOME>
+	<PROPERTY>position = (7399.41845703125, 5086.70654296875)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>w3</NAME>
+	<OUTCOME>live</OUTCOME>
+	<OUTCOME>dead</OUTCOME>
+	<PROPERTY>position = (7476.01123046875, 5116.49267578125)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>cb2_st</NAME>
+	<OUTCOME>on</OUTCOME>
+	<OUTCOME>off</OUTCOME>
+	<PROPERTY>position = (7647.28271484375, 5089.8984375)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>w6</NAME>
+	<OUTCOME>live</OUTCOME>
+	<OUTCOME>dead</OUTCOME>
+	<PROPERTY>position = (7581.3271484375, 5139.89599609375)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>p2</NAME>
+	<OUTCOME>T</OUTCOME>
+	<OUTCOME>F</OUTCOME>
+	<PROPERTY>position = (7627.06982421875, 5228.19140625)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>p1</NAME>
+	<OUTCOME>T</OUTCOME>
+	<OUTCOME>F</OUTCOME>
+	<PROPERTY>position = (7537.71142578125, 5224.99951171875)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>s1_st</NAME>
+	<OUTCOME>ok</OUTCOME>
+	<OUTCOME>upside_down</OUTCOME>
+	<OUTCOME>short</OUTCOME>
+	<OUTCOME>intermittent</OUTCOME>
+	<OUTCOME>broken</OUTCOME>
+	<PROPERTY>position = (7414.3115234375, 5163.2998046875)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>s1_pos</NAME>
+	<OUTCOME>up</OUTCOME>
+	<OUTCOME>down</OUTCOME>
+	<PROPERTY>position = (7343.03662109375, 5165.42724609375)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>w1</NAME>
+	<OUTCOME>live</OUTCOME>
+	<OUTCOME>dead</OUTCOME>
+	<PROPERTY>position = (7376.01513671875, 5234.57421875)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>w2</NAME>
+	<OUTCOME>live</OUTCOME>
+	<OUTCOME>dead</OUTCOME>
+	<PROPERTY>position = (7450.48046875, 5232.4462890625)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>w0</NAME>
+	<OUTCOME>live</OUTCOME>
+	<OUTCOME>dead</OUTCOME>
+	<PROPERTY>position = (7415.375, 5310.10400390625)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>s2_st</NAME>
+	<OUTCOME>ok</OUTCOME>
+	<OUTCOME>upside_down</OUTCOME>
+	<OUTCOME>short</OUTCOME>
+	<OUTCOME>intermittent</OUTCOME>
+	<OUTCOME>broken</OUTCOME>
+	<PROPERTY>position = (7338.78173828125, 5276.0615234375)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>s2_pos</NAME>
+	<OUTCOME>up</OUTCOME>
+	<OUTCOME>down</OUTCOME>
+	<PROPERTY>position = (7337.7177734375, 5333.5068359375)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>l1_lit</NAME>
+	<OUTCOME>T</OUTCOME>
+	<OUTCOME>F</OUTCOME>
+	<PROPERTY>position = (7428.140625, 5403.7177734375)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>w4</NAME>
+	<OUTCOME>live</OUTCOME>
+	<OUTCOME>dead</OUTCOME>
+	<PROPERTY>position = (7526.01025390625, 5303.720703125)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>s3_pos</NAME>
+	<OUTCOME>up</OUTCOME>
+	<OUTCOME>down</OUTCOME>
+	<PROPERTY>position = (7564.30615234375, 5265.4248046875)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>s3_st</NAME>
+	<OUTCOME>ok</OUTCOME>
+	<OUTCOME>upside_down</OUTCOME>
+	<OUTCOME>short</OUTCOME>
+	<OUTCOME>intermittent</OUTCOME>
+	<OUTCOME>broken</OUTCOME>
+	<PROPERTY>position = (7632.3896484375, 5305.84814453125)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>l2_lit</NAME>
+	<OUTCOME>T</OUTCOME>
+	<OUTCOME>F</OUTCOME>
+	<PROPERTY>position = (7558.98779296875, 5393.0791015625)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>l2_st</NAME>
+	<OUTCOME>ok</OUTCOME>
+	<OUTCOME>intermittent</OUTCOME>
+	<OUTCOME>broken</OUTCOME>
+	<PROPERTY>position = (7627.06982421875, 5361.16552734375)</PROPERTY>
+</VARIABLE>
+
+<VARIABLE TYPE="nature">
+	<NAME>l1_st</NAME>
+	<OUTCOME>ok</OUTCOME>
+	<OUTCOME>intermittent</OUTCOME>
+	<OUTCOME>broken</OUTCOME>
+	<PROPERTY>position = (7482.3935546875, 5362.2294921875)</PROPERTY>
+</VARIABLE>
+
+<DEFINITION>
+	<FOR>outside_power</FOR>
+	<TABLE>0.98 0.02</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>cb1_st</FOR>
+	<TABLE>0.999 0.001</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>w3</FOR>
+	<GIVEN>outside_power</GIVEN>
+	<GIVEN>cb1_st</GIVEN>
+	<TABLE>1.0 0.0 0.0 1.0 0.0 1.0 0.0 1.0</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>cb2_st</FOR>
+	<TABLE>0.999 0.001</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>w6</FOR>
+	<GIVEN>outside_power</GIVEN>
+	<GIVEN>cb2_st</GIVEN>
+	<TABLE>1.0 0.0 0.0 1.0 0.0 1.0 0.0 1.0</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>p2</FOR>
+	<GIVEN>w6</GIVEN>
+	<TABLE>1.0 0.0 0.0 1.0</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>p1</FOR>
+	<GIVEN>w3</GIVEN>
+	<TABLE>1.0 0.0 0.0 1.0</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>s1_st</FOR>
+	<TABLE>0.9 0.01 0.04 0.03 0.02</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>s1_pos</FOR>
+	<TABLE>0.5 0.5</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>w1</FOR>
+	<GIVEN>w3</GIVEN>
+	<GIVEN>s1_st</GIVEN>
+	<GIVEN>s1_pos</GIVEN>
+	<TABLE>1.0 0.0 0.0 1.0 0.0 1.0 1.0 0.0 0.6 0.4 0.4 0.6 0.4 0.6 0.01 0.99 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>w2</FOR>
+	<GIVEN>w3</GIVEN>
+	<GIVEN>s1_st</GIVEN>
+	<GIVEN>s1_pos</GIVEN>
+	<TABLE>0.0 1.0 1.0 0.0 1.0 0.0 0.0 1.0 0.4 0.6 0.4 0.6 0.2 0.8 0.2 0.8 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>w0</FOR>
+	<GIVEN>w1</GIVEN>
+	<GIVEN>w2</GIVEN>
+	<GIVEN>s2_st</GIVEN>
+	<GIVEN>s2_pos</GIVEN>
+	<TABLE>1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 0.8 0.2 0.8 0.2 0.4 0.6 0.4 0.6 0.0 1.0 0.0 1.0 1.0 0.0 0.0 1.0 0.0 1.0 1.0 0.0 0.4 0.6 0.4 0.6 0.2 0.8 0.2 0.8 0.0 1.0 0.0 1.0 0.0 1.0 1.0 0.0 1.0 0.0 0.0 1.0 0.4 0.6 0.4 0.6 0.2 0.8 0.2 0.8 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>s2_st</FOR>
+	<TABLE>0.9 0.01 0.04 0.03 0.02</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>s2_pos</FOR>
+	<TABLE>0.5 0.5</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>l1_lit</FOR>
+	<GIVEN>w0</GIVEN>
+	<GIVEN>l1_st</GIVEN>
+	<TABLE>1.0 0.0 0.7 0.3 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>w4</FOR>
+	<GIVEN>w3</GIVEN>
+	<GIVEN>s3_pos</GIVEN>
+	<GIVEN>s3_st</GIVEN>
+	<TABLE>1.0 0.0 0.0 1.0 0.4 0.6 0.2 0.8 0.0 1.0 0.0 1.0 1.0 0.0 0.4 0.6 0.2 0.8 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>s3_pos</FOR>
+	<TABLE>0.8 0.2</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>s3_st</FOR>
+	<TABLE>0.9 0.01 0.04 0.03 0.02</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>l2_lit</FOR>
+	<GIVEN>w4</GIVEN>
+	<GIVEN>l2_st</GIVEN>
+	<TABLE>1.0 0.0 0.6 0.4 0.0 1.0 0.0 1.0 0.0 1.0 0.0 1.0</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>l2_st</FOR>
+	<TABLE>0.9 0.03 0.07</TABLE>
+</DEFINITION>
+
+<DEFINITION>
+	<FOR>l1_st</FOR>
+	<TABLE>0.9 0.07 0.03</TABLE>
+</DEFINITION>
+</NETWORK>
+</BIF>
