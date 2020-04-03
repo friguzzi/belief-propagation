@@ -766,7 +766,7 @@ $("#button_probability_table").click(function() {
     }
     $("#name_choice").text("Probability Table");
 
-    color_nodes_indip();
+   // color_nodes_indip();
 });
 
 $("#button_query").click(function() {
