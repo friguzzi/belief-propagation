@@ -942,6 +942,7 @@ $("#start").click(function() {
  //   let query_node_id = get_id_from_label_node(query_node_name);
  //   let query_node = nodes.get(query_node_id);
 
+    $("#round").text("Round "+0)
  
     observations = {}
     $("#observations > div.row").find("div.btn-group").each(function() {
@@ -1283,6 +1284,7 @@ class FactorGraph
     start()
     {
         step=0
+        $("#round").text("Round "+step)
         epsilons = [1]
         nodes_global=Object.values(this.nodes)
 
@@ -1320,8 +1322,10 @@ class FactorGraph
                 if (senders.length==0)
                 {
                     step+=1
+
                     if (step==2)
                         return
+                    $("#round").text("Round "+step)
                     console.log("new step "+step)
                     let vars = nodes_global.filter(node=> node instanceof Variable)
                     let fs = nodes_global.filter(node=>node instanceof Factor)
