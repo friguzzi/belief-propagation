@@ -1087,23 +1087,31 @@ class Node {
         let message=mu.value.mapElems(x=>x.toFixed(2))
         let mess_array=message.toNestedArray()
         let full_mess_array=mu.value.toNestedArray()
-        let title_lines=title.split("<br>")
+        let title_lines=title.split("\n")
         old_edge_id=edge_id
         if (this instanceof Factor)
         {
             let mess="v->f"+"["+mess_array+"]"
             let new_lab=lines[0]+"\n<b>"+mess+"</b>"
-            let title_mess="v->f"+"["+full_mess_array+"]"
-            let new_title=title_lines[0]+"<br>"+title_mess
+            let title_mess="<td>v->f</td>"
+            for (let m in full_mess_array)
+                title_mess+="<td>"+full_mess_array[m]+"</td>"
+            let new_title=title_lines[0]+"\n"+title_lines[1]+"\n<tr>"+title_mess+"</tr>\n"+title_lines[3]
             edgesf.update({id:edge_id,label:new_lab,'title':new_title})
+            console.log(new_title)
+
             old_edge_label=lines[0]+"\n"+mess
         }
         else
         {
             let mess="f->v"+"["+mess_array+"]"
             let new_lab="<b>"+mess+"</b>\n"+lines[1]
-            let title_mess="f->v"+"["+full_mess_array+"]"
-            let new_title=title_mess+"<br>"+title_lines[1]
+
+            let title_mess="<td>f->v</td>"
+            for (let m in full_mess_array)
+                title_mess+="<td>"+full_mess_array[m]+"</td>"
+            let new_title=title_lines[0]+"\n<tr>"+title_mess+"</tr>\n"+title_lines[2]+"\n"+title_lines[3]
+            console.log(new_title)
             edgesf.update({id:edge_id,label:new_lab,'title':new_title})
             old_edge_label=mess+"\n"+lines[1]
         }
@@ -1609,12 +1617,26 @@ for (node in nodes._data)
             } else {
                 max_e_id = Math.max(...Object.keys(edgesf._data));
             }
-                edgesf.add({
+
+            let var_node =nodesf.get(n);
+            let title="<table><thead><tr><th></th>"
+            for (const index in var_node.domain)
+                title+="<th>"+var_node.domain[index]+"</th>"
+            title+="</tr></thead><tbody>\n<tr><td>f->v</td>"
+            for (const index in var_node.domain)
+                title+="<td></td>"
+            title+="</tr>\n<tr><td>v->f</td>"
+            for (const index in var_node.domain)
+                title+="<td></td>"
+            title+="</tr>\n</tbody></table>"
+
+
+            edgesf.add({
                 id: max_e_id + 1,
                 from: parseInt(from),
                 to: parseInt(to),
                 label: "f->v\nv->f",
-                title: "f->v<br>v->f",
+                title: title,
                 font: { multi: true }
                 });
             g.connect(from,to);
@@ -1625,13 +1647,24 @@ for (node in nodes._data)
         } else {
             max_e_id = Math.max(...Object.keys(edgesf._data));
         }
+        let var_node =nodesf.get(parseInt(variab));
+        let title="<table><thead><tr><th></th>"
+        for (const index in var_node.domain)
+            title+="<th>"+var_node.domain[index]+"</th>"
+        title+="</tr></thead><tbody>\n<tr><td>f->v</td>"
+        for (const index in var_node.domain)
+            title+="<td></td>"
+        title+="</tr>\n<tr><td>v->f</td>"
+        for (const index in var_node.domain)
+            title+="<td></td>"
+        title+="</tr>\n</tbody></table>"
 
         edgesf.add({
             id: max_e_id + 1,
             from: parseInt(from),
             to: parseInt(variab),
             label: "f->v\nv->f",
-            title: "f->v<br>v->f",
+            title: title,
             font: { multi: true }
         });
      g.connect(from,factor['var'])
