@@ -10,16 +10,17 @@ let format = require('xml-formatter');
 const nd = require('nd4js');
 let step=0
 let cur_marginals;
+let last_marginals;
 let epsilons;
 var g;
 let nodes_global = {}
-let last_marginals
 let senders
 let sender
 let next_dests
 let old_edge_label
 let old_edge_id
 let already_selected_node
+let epsilon
 
 activate_interactions()
 
@@ -786,7 +787,9 @@ $("#button_query").click(function() {
     g=build_graph()
     $('#start').removeAttr("disabled");
     $("#step").attr("disabled",true);
-    $("#run").attr("disabled",true);
+    $("#step_one_round").attr("disabled",true);
+    $("#run_to_convergence").attr("disabled",true);
+    $("#round").text("Round 0")
 });
 
 $("#save_create_node").click(function() {
@@ -915,20 +918,36 @@ $("#save_set_properties").click(function() {
 
 $("#step").click(function() {
     g.step()
-    if (step==2)
-    {
-        $('#step').attr('disabled',true)
-        $('#run').attr('disabled',true)
-    }
     
 });
 
-$("#run").click(function() {
+$("#step_one_round").click(function() {
     $('#start').attr('disabled',true)
-    $('#step').attr('disabled',true)
-    $("#run").attr("disabled",true);        
-    while (step<2)
+    let old_step=step
+    while (step<old_step+1)
         g.step()
+
+        
+});
+
+$("#run_to_convergence").click(function() {
+    $('#start').attr('disabled',true)
+    let epsilon=1  
+    let old_step=step
+    let last_marginals=g.get_marginals()
+    while (epsilon>1e-5 && step<=10000)
+    {
+        g.step()
+        if (old_step!=step)
+        {
+            let marg=g.get_marginals()
+            epsilon=compare_marginals(marg,last_marginals)
+            old_step=step
+            last_marginals=marg
+        }
+    }
+
+        
 });
 
 $("#start").click(function() {
@@ -986,7 +1005,8 @@ $("#start").click(function() {
         }
     $('#start').attr('disabled',true)
     $("#step").removeAttr("disabled");
-    $("#run").removeAttr("disabled");
+    $("#step_one_round").removeAttr("disabled");
+    $("#run_to_convergence").removeAttr("disabled");
     networkf.on("hoverNode", function (params) {
         console.log('hoverNode Event:', params);
     })
@@ -1330,9 +1350,6 @@ class FactorGraph
                 if (senders.length==0)
                 {
                     step+=1
-
-                    if (step==2)
-                        return
                     $("#round").text("Round "+step)
                     console.log("new step "+step)
                     let vars = nodes_global.filter(node=> node instanceof Variable)
@@ -1453,11 +1470,7 @@ return epsilons;
 
     }
 
-    // @staticmethod
-//    confront_marginals(marginal_1, marginal_2)
-//    {
-//        return sum([sum(nd.absolute(marginal_1[k] - marginal_2[k])) for k in marginal_1.keys()])
-//    }
+
 
     add(node)
     {
@@ -1532,6 +1545,16 @@ return epsilons;
             marg[n.name]=n.marginal();
         return marg
     }
+}
+function compare_marginals(marginal_1, marginal_2)
+{
+    let sum=0
+    for (const n in marginal_1)
+    {
+        let c = nd.zip_elems([marginal_1[n],marginal_2[n]], (a,b) => Math.abs(a-b) )
+        sum+=c.reduceElems((x,y)=>x+y)
+    }
+    return sum
 }
 
 function build_graph()
