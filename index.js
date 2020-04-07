@@ -946,10 +946,8 @@ $("#run_to_convergence").click(function() {
     $('#start').attr('disabled',true)
     let epsilon=1  
     let old_step=step
-    let last_marginals=g.get_marginals()
     while (epsilon>1e-5 && step<=10000)
     {
-        g.step()
         if (old_step!=step)
         {
             let marg=g.get_marginals()
@@ -957,6 +955,7 @@ $("#run_to_convergence").click(function() {
             old_step=step
             last_marginals=marg
         }
+        g.step()
     }
 
         
@@ -1348,6 +1347,7 @@ class FactorGraph
         senders = fs.concat(vars)
         sender=senders.shift()
         next_dests=[...sender.connections]
+        last_marginals = this.get_marginals()
 
     }
 
