@@ -423,6 +423,18 @@ $(".example").click(function(params)
             load_network($xml)
         },
     });
+    $("#error_dialog").hide();
+    $("#success").hide();
+    $("#div_create_node").hide();
+    $("#div_create_edge").hide();
+    $("#div_delete_node").hide();
+    $("#div_delete_edge").hide();
+    $("#div_set_properties").hide();
+    $("#div_probability_table").hide();
+    $("#div_query").hide();
+    $("#help_message").hide();
+    $("#div_create_nodes").hide();
+    $("#name_choice").text("Select a button please...");
 
 })
 
