@@ -1,0 +1,118 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Belief Propagation Step by Step &#8212; bp 1.0 documentation</title>
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="nav-item nav-item-0"><a href="#">bp 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="belief-propagation-step-by-step">
+<h1>Belief Propagation Step by Step<a class="headerlink" href="#belief-propagation-step-by-step" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>This web application performs belief propagation over Bayesian networks. Its purpose is to
+illustrate belief propagation step by step: inference can be peformed incrementally so that
+the user can investigate the content of messages and the values of marginals during execution.</p>
+<p>In particular, the user can compute just the next message to be exchanged or perform a full round,
+i.e., the update of all messages in the network, or run propagation until convergence.
+If the network is a polytree, after two rounds of propagation the algorithm converges.
+Otherwise, the propagation algorithm becomes loopy and there is no guarantee of convergence,
+even if in practice it often converges.
+The application performs one round by cycling over all nodes and computing the outgoing messages.</p>
+<p>With this application the user can design a new Bayesian network, load it from an XMLBIF file,
+or load a example network. In order to perform propagation, the network is first converted to
+a factor network since belief propagation is simpler on factor networks.</p>
+<p>The source code is available at <a class="reference external" href="https://github.com/friguzzi/belief-propagation">https://github.com/friguzzi/belief-propagation</a>.</p>
+<div class="section" id="bayesian-network-building">
+<h3>Bayesian Network Building<a class="headerlink" href="#bayesian-network-building" title="Permalink to this headline">¶</a></h3>
+<img alt="_images/network-creation.gif" src="_images/network-creation.gif" />
+</div>
+<div class="section" id="inference-one-message-at-a-time">
+<h3>Inference One Message at a Time<a class="headerlink" href="#inference-one-message-at-a-time" title="Permalink to this headline">¶</a></h3>
+<img alt="_images/step-one-message.gif" src="_images/step-one-message.gif" />
+</div>
+<div class="section" id="inference-one-round-at-a-time">
+<h3>Inference One Round at a Time<a class="headerlink" href="#inference-one-round-at-a-time" title="Permalink to this headline">¶</a></h3>
+<img alt="_images/step-one-round.gif" src="_images/step-one-round.gif" />
+</div>
+<div class="section" id="loopy-belief-propagation">
+<h3>Loopy Belief Propagation<a class="headerlink" href="#loopy-belief-propagation" title="Permalink to this headline">¶</a></h3>
+<img alt="_images/loopy-belief-prop.gif" src="_images/loopy-belief-prop.gif" />
+</div>
+<div class="section" id="support">
+<h3>Support<a class="headerlink" href="#support" title="Permalink to this headline">¶</a></h3>
+<p>Send email to <a class="reference external" href="mailto:ml&#37;&#52;&#48;unife&#46;it">ml<span>&#64;</span>unife<span>&#46;</span>it</a></p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Belief Propagation Step by Step</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a><ul>
+<li><a class="reference internal" href="#bayesian-network-building">Bayesian Network Building</a></li>
+<li><a class="reference internal" href="#inference-one-message-at-a-time">Inference One Message at a Time</a></li>
+<li><a class="reference internal" href="#inference-one-round-at-a-time">Inference One Round at a Time</a></li>
+<li><a class="reference internal" href="#loopy-belief-propagation">Loopy Belief Propagation</a></li>
+<li><a class="reference internal" href="#support">Support</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="nav-item nav-item-0"><a href="#">bp 1.0 documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2020, Riguzzi Fabrizio.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.8.3.
+    </div>
+  </body>
+</html>
