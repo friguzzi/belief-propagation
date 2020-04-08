@@ -17,4 +17,4 @@ Run
 ```
 make
 ```
-Then simply open index.html in a browser.
+Then simply open `index.html` in a browser.
