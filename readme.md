@@ -11,7 +11,7 @@ It requires the following NodeJS packages:
 - `nd4js`
 - `xml-formatter`
 
-to be installed with `npm install -g <package>`.
+to be installed with `npm install <package>` in the root app folder.
 
 Run 
 ```
