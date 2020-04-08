@@ -8,10 +8,9 @@ let edgesf = new vis.DataSet([]);
 let et = require('elementtree');
 let format = require('xml-formatter');
 const nd = require('nd4js');
-let step=0
+let round=0
 let cur_marginals;
 let last_marginals;
-let epsilons;
 var g;
 let nodes_global = {}
 let senders
@@ -915,8 +914,8 @@ $("#step").click(function() {
 
 $("#step_one_round").click(function() {
     $('#start').attr('disabled',true)
-    let old_step=step
-    while (step<old_step+1)
+    let old_round=round
+    while (round<old_round+1)
         g.step()
 
         
@@ -924,14 +923,14 @@ $("#step_one_round").click(function() {
 
 $("#run_to_convergence").click(function() {
     $('#start').attr('disabled',true)
-    let old_step=step
-    while (epsilon>1e-5 && step<=10000)
+    let old_round=round
+    while (epsilon>1e-5 && round<=10000)
     {
-        if (old_step!=step)
+        if (old_round!=round)
         {
             let marg=g.get_marginals()
             epsilon=compare_marginals(marg,last_marginals)
-            old_step=step
+            old_round=round
             last_marginals=marg
         }
         g.step()
@@ -1233,8 +1232,8 @@ class FactorGraph
 
     start()
     {
-        step=0
-        $("#round").text("Round "+step)
+        round=0
+        $("#round").text("Round "+round)
         epsilon = 1
         nodes_global=Object.values(this.nodes)
 
@@ -1248,7 +1247,7 @@ class FactorGraph
                 let message = new Mu(node, ones(node.size))
                 for (const dest of node.connections)
                 {
-                    dest.propagate(step, message)
+                    dest.propagate(round, message)
                     edgesf.update({id:old_edge_id,label:old_edge_label})
                 }
 
@@ -1272,8 +1271,8 @@ class FactorGraph
             {
                 if (senders.length==0)
                 {
-                    step+=1
-                    $("#round").text("Round "+step)
+                    round+=1
+                    $("#round").text("Round "+round)
                     let vars = nodes_global.filter(node=> node instanceof Variable)
                     let fs = nodes_global.filter(node=>node instanceof Factor)
                     senders = fs.concat(vars)
@@ -1288,7 +1287,7 @@ class FactorGraph
         let dest=next_dests.shift()
         let value = sender.create_message(dest)
         let msg =new  Mu(sender, value)
-        dest.propagate(step, msg)
+        dest.propagate(round, msg)
         cur_marginals = this.get_marginals()
         for (const var_n in cur_marginals)
         {
@@ -1467,7 +1466,7 @@ for (node in nodes._data)
         node_name = nodes._data[node]['label']
         node_domain = nodes._data[node]['domain']
         node_given = nodes._data[node]['probability']['given']
-        node_variable = new Variable(node, node_domain.length)
+        node_variable = new Variable(parseInt(node), node_domain.length)
         marginal_array=node_variable.marginal().toNestedArray();
         marginals=marginal_array.map(x=>x.toFixed(2))
         nodesf.add({
