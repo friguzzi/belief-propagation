@@ -408,14 +408,12 @@ $("#button_open_file_hidden").change(function() {
 
 $(".example").click(function(params)
 {
-    console.log(params);
     let file="XMLBIF%20Examples/"+params.target.text
     $.ajax({
         'url': file,
         type: "GET",
         dataType: "xml",
         success: function (response) {
-            console.log(response);
             var ns = new XMLSerializer();
             var ss= ns.serializeToString(response);
             let xmlDoc = $.parseXML(ss);
@@ -479,7 +477,6 @@ $("#button_save_file").click(function() {
         def_for.text = nodes._data[node]['label']
         given = nodes._data[node]['probability']['given']
         table = nodes._data[node]['probability']['table']
-       // table = [str(p) for p in table]
         for (g of given)
         {
             def_given = SubElement(definition, "GIVEN")
@@ -489,35 +486,18 @@ $("#button_save_file").click(function() {
         def_table.text = table.join(" ")
     }
     etree = new ElementTree(bif);
-//    indent(etree);
     xml = format(etree.write({'xml_declaration': true,'encoding':'utf-8', 'method':"xml"}),{collapseContent: true});
-//    return (b'<?xml version="1.0" encoding="UTF-8"?>' + tostring(bif)).decode('utf-8')
-
-/*
-    let request_data = {};
-    request_data.nodes = nodes._data;
-    console.log(request_data);
-    $.ajax({
-        url: 'http://localhost:5000/save_network',
-        type: 'post',
-        crossDomain: true,
-        dataType: 'json',
-        contentType: 'application/json',
-        success: function (response) {*/
-            console.log(xml);
-            var blob = new Blob([xml], {type: 'text/xml'});
-            if (window.navigator.msSaveOrOpenBlob) {
-                window.navigator.msSaveBlob(blob, "graph.xml");
-            } else {
-                var elem = window.document.createElement('a');
-                elem.href = window.URL.createObjectURL(blob);
-                elem.download = "graph.xml";
-                document.body.appendChild(elem);
-                elem.click();
-                document.body.removeChild(elem);
-            }
-//        },
- //       data: JSON.stringify(request_data)
+    var blob = new Blob([xml], {type: 'text/xml'});
+    if (window.navigator.msSaveOrOpenBlob) {
+        window.navigator.msSaveBlob(blob, "graph.xml");
+    } else {
+        var elem = window.document.createElement('a');
+        elem.href = window.URL.createObjectURL(blob);
+        elem.download = "graph.xml";
+        document.body.appendChild(elem);
+        elem.click();
+        document.body.removeChild(elem);
+    }
 
 });
 
@@ -944,7 +924,6 @@ $("#step_one_round").click(function() {
 
 $("#run_to_convergence").click(function() {
     $('#start').attr('disabled',true)
-    let epsilon=1  
     let old_step=step
     while (epsilon>1e-5 && step<=10000)
     {
@@ -968,18 +947,10 @@ $("#start").click(function() {
     By default observations are set to "NO" which means they are disabled for every node.
     They are opt-in for every node.
      */
- //   let query_node_name = $("#query_input").val();
- //   let query_node_id = get_id_from_label_node(query_node_name);
- //   let query_node = nodes.get(query_node_id);
 
-    $("#round").text("Round "+0)
- 
     observations = {}
     $("#observations > div.row").find("div.btn-group").each(function() {
         let choice = $(this).find("label.active > input")[0];
-//        let a = $(this).find("input")[0];
-//        a.setAttribute('disabled','true')
-        console.log('choice '+choice)
         observations[this.id] = choice.value;
     });
     observe(g, observations)
@@ -1001,13 +972,8 @@ $("#start").click(function() {
            title+="<td>"+full_marg_arr[index]+"</td>"
            title+="</tr></tbody></table>"
         
-//                var_node.setOptions({label:new_lab})
         nodesf.update([{id: var_n, label: new_lab, 'title':title}]);
-//                network.redraw()
 
-        //                network.body.nodes[n].setOptions({'label':new_lab})
-//                nodes.update(node)
-//                nodesf._data[n].label=new_lab
     }    
     g.start()
     for (const n of nodes_global)
@@ -1021,45 +987,9 @@ $("#start").click(function() {
     $("#step_one_round").removeAttr("disabled");
     $("#run_to_convergence").removeAttr("disabled");
     networkf.on("hoverNode", function (params) {
-        console.log('hoverNode Event:', params);
     })
     networkf.on("hoverEdge", function (params) {
-        console.log('hoverEdge Event:', params);
     })
-//    result = g.nodes[query_node_id].marginal()
-//    result = result.toNestedArray()
- //   result = [round(x, 4) for x in result]
-
-//    $("#query_result").text(result);
-    /*
-    let request_data = {};
-    request_data.observations = {};
-    request_data.nodes = nodes._data;
-    request_data.edges = edges._data;
-
-    let query_node_name = $("#query_input").val();
-    let query_node_id = get_id_from_label_node(query_node_name);
-    let query_node = nodes.get(query_node_id);
-
-    if (query_node) {
-        $("#observations > div.row").find("div.btn-group").each(function() {
-            let choice = $(this).find("label.active > input")[0];
-            request_data.observations[this.id] = choice.value;
-        });
-        request_data.query_node = query_node.id;
-        $.ajax({
-            url: 'http://localhost:5000/belief_propagation',
-            type: 'post',
-            crossDomain: true,
-            dataType: 'json',
-            contentType: 'application/json',
-            success: function (response) {
-                console.log(response);
-                $("#query_result").text(response);
-            },
-            data: JSON.stringify(request_data)
-        });
-    }*/
 });
 function observe(graph, observations)
 {
@@ -1069,7 +999,6 @@ function observe(graph, observations)
         {
             graph.set_evidence(o, observations[o])
         }
-        console.log(o)
     }
 }
 function ones(size)
@@ -1131,7 +1060,6 @@ class Node {
                 title_mess+="<td>"+full_mess_array[m]+"</td>"
             let new_title=title_lines[0]+"\n"+title_lines[1]+"\n<tr>"+title_mess+"</tr>\n"+title_lines[3]
             edgesf.update({id:edge_id,label:new_lab,'title':new_title})
-            console.log(new_title)
 
             old_edge_label=lines[0]+"\n"+mess
         }
@@ -1144,7 +1072,6 @@ class Node {
             for (let m in full_mess_array)
                 title_mess+="<td>"+full_mess_array[m]+"</td>"
             let new_title=title_lines[0]+"\n<tr>"+title_mess+"</tr>\n"+title_lines[2]+"\n"+title_lines[3]
-            console.log(new_title)
             edgesf.update({id:edge_id,label:new_lab,'title':new_title})
             old_edge_label=mess+"\n"+lines[1]
         }
@@ -1179,10 +1106,8 @@ class Variable extends Node{
                 for (const mu of mus)
                 {
                     product_output=nd.zip_elems([product_output,mu.value],(a_ij,b_ij, i,j) =>  a_ij * b_ij)
-                //   console.log(product_output.toString())
                 }
                 let marg_array=product_output.toNestedArray()
-                //console.log(val_flat_array.toString())
                 let sum=marg_array.reduce( (x,y) => x+y ) 
                 return product_output.mapElems((x)=>x/sum)
         
@@ -1200,16 +1125,13 @@ class Variable extends Node{
             let mus_not_filtered = this.mailbox[Math.max(...Object.keys(this.mailbox))]
 
             let mus = mus_not_filtered.filter(mu=>mu.source_node != dest)
-//            let logs=mus.map(mu=>nd.zip_elems(mu,(x)=>Math.log(x)))  
             let product_output=ones(this.size)
             for (const mu of mus)
             {
                 product_output=nd.zip_elems([product_output,mu.value],(a_ij,b_ij, i,j) =>  a_ij * b_ij)
-             //   console.log(product_output.toString())
             }
 
             return product_output 
-            //nd.zip_elems(sum_logs,(x)=>Math.exp(x))
         }
         else
             return ones(this.size)
@@ -1233,17 +1155,14 @@ class Factor extends Node{
         let dims = this.potential.shape
 
         let accumulator = nd.tabulate(dims,(x)=>1.0)
-        //console.log(accumulator.toString())
         let message=mu.value.data
         let index =this.connections.indexOf(mu.source_node)
         for (const [coordinate,el] of this.potential.elems())
         {
             let c = coordinate[index]
-            //let val=accumulator.data[coordinate]
             let val=message[c]
             accumulator.set([...coordinate],val)
         }
-       // console.log(accumulator.toString())
         return accumulator
     }
 
@@ -1264,7 +1183,6 @@ class Factor extends Node{
                 res.modify([c],x=>x + pot)
             }
         }
-        //console.log(res)
         return res
     }
 
@@ -1275,20 +1193,13 @@ class Factor extends Node{
             let mus_not_filtered = this.mailbox[Math.max(...Object.keys(this.mailbox))]
             let mus = mus_not_filtered.filter(mu=>  mu.source_node != dest)
             let all_mus = mus.map(mu=>this.reshape_mu(mu))
-        //    lambdas = nd.array(all_mus.map(nd.log))
-        //    max_lambdas = nd.nan_to_num(lambdas.flatten())
             let product_output=this.potential
             for (const mu of all_mus)
             {
                 product_output=nd.zip_elems([product_output,mu],(a_ij,b_ij, i,j) =>  a_ij * b_ij)
             }
-//            res = sum(lambdas) - max(max_lambdas)
-//            product_output = nd.multiply(this.potential, nd.exp(res))
-         //   console.log(product_output.toString())
             let res=this.sum(product_output,dest)
             return res
-//            return nd.exp(
-//                nd.log(this.sum(product_output, dest)) + max(max_lambdas))
         }
         else
             return this.sum(this.potential, dest)
@@ -1306,10 +1217,8 @@ class Mu
         this.source_node = source_node
         let val_flat = value.reshape(-1)
         let val_flat_array=val_flat.toNestedArray()
-        //console.log(val_flat_array.toString())
         let sum=val_flat_array.reduce( (x,y) => x+y ) 
         this.value= val_flat.mapElems((x)=>x/sum)
-       // console.log(this.value.toString())
     }
 }
 
@@ -1326,7 +1235,7 @@ class FactorGraph
     {
         step=0
         $("#round").text("Round "+step)
-        epsilons = [1]
+        epsilon = 1
         nodes_global=Object.values(this.nodes)
 
         for (const node of nodes_global)
@@ -1365,14 +1274,12 @@ class FactorGraph
                 {
                     step+=1
                     $("#round").text("Round "+step)
-                    console.log("new step "+step)
                     let vars = nodes_global.filter(node=> node instanceof Variable)
                     let fs = nodes_global.filter(node=>node instanceof Factor)
                     senders = fs.concat(vars)
                 }
                 else
                     sender=senders.shift()
-                console.log("new sender "+sender.name)
                 next_dests = [...sender.connections]
             }
             while (next_dests.length==0)
@@ -1380,8 +1287,6 @@ class FactorGraph
 
         let dest=next_dests.shift()
         let value = sender.create_message(dest)
-        console.log(dest.name)
-        console.log(value.toString())
         let msg =new  Mu(sender, value)
         dest.propagate(step, msg)
         cur_marginals = this.get_marginals()
@@ -1393,7 +1298,6 @@ class FactorGraph
             let marginals=node_marg.mapElems(x=>x.toFixed(2))
             let marg_arr=marginals.toNestedArray()
             let new_lab=a[0]+"\n["+marg_arr+"]"
-//                var_node.setOptions({label:new_lab})
             let full_marg_arr=node_marg.toNestedArray()
             let title="<table><thead><tr>"
             for (const index in full_marg_arr)
@@ -1402,22 +1306,13 @@ class FactorGraph
             for (const index in full_marg_arr)
                 title+="<td>"+full_marg_arr[index]+"</td>"
             title+="</tr></tbody></table>"
-            //                var_node.setOptions({label:new_lab})
             nodesf.update([{id: var_n, label: new_lab, 'title':title}]);
 
-//            nodesf.update([{id: var_n, label: new_lab}]);
-//                network.redraw()
-
-            //                network.body.nodes[n].setOptions({'label':new_lab})
-//                nodes.update(node)
-//                nodesf._data[n].label=new_lab
         }
-//            epsilons.push(this.confront_marginals(cur_marginals, last_marginals))
     }
 
 
     calculate_marginals(max_iterations, tol)
-    //calculate_marginals(max_iterations=1000, tol=1e-5)
         /*
         This is the main method of the implementation and consists in a loop until max_iterations that propagates
         messages from variables to factors and vice-versa, using parallel message passing.
@@ -1442,20 +1337,16 @@ class FactorGraph
         while ((step < max_iterations) && tol < epsilons[epsilons.length-1])
         {
             step += 1
-            console.log("Step "+step)
             let last_marginals = cur_marginals
             let vars = Object.values(this.nodes).filter(node=> node instanceof Variable)
             let fs = Object.values(this.nodes).filter(node=>node instanceof Factor)
             let senders = fs.concat(vars)
             for (const sender of senders)
             {
-                    console.log(sender.name)
                     let next_dests = sender.connections
                 for (const dest of next_dests)
                 {
                     let value = sender.create_message(dest)
-                    console.log(dest.name)
-                    console.log(value.toString())
                     let msg =new  Mu(sender, value)
                     dest.propagate(step, msg)
                 }
@@ -1469,17 +1360,10 @@ class FactorGraph
                 let marginals=node_marg.mapElems(x=>x.toFixed(2))
                 let marg_arr=marginals.toNestedArray()
                 let new_lab=a[0]+"\n["+marg_arr+"]"
-//                var_node.setOptions({label:new_lab})
                 nodesf.update([{id: var_n, label: new_lab}]);
-//                network.redraw()
 
-                //                network.body.nodes[n].setOptions({'label':new_lab})
-//                nodes.update(node)
-//                nodesf._data[n].label=new_lab
             }
-//            epsilons.push(this.confront_marginals(cur_marginals, last_marginals))
         }
-//        return epsilons[1:];
 return epsilons;
 
     }
@@ -1526,9 +1410,7 @@ return epsilons;
                 { 
                     del_dims.push(del_dims_int_arr[i])
                 }
-                console.log(del_dims.toString())
                 del_dims.splice(del_ax,1)
-                console.log(del_dims.toString())
                 let slice=[]
                 for (const sl in f.connections)
                 {
@@ -1538,12 +1420,7 @@ return epsilons;
                         slice.push(parseInt(state))
                 }
                 f.potential = f.potential.sliceElems(...slice)
-                console.log(f.potential)
-    //            f.potential = f.potential.reshape(...del_dims)
-                console.log(f.potential)
-                console.log(f.connections.toString())
                 f.connections.splice(del_ax,1)
-                console.log(f.connections.toString())
             }
         }
 
@@ -1587,7 +1464,6 @@ function build_graph()
     factors = []
 for (node in nodes._data)
     {
-     //   node_name = 'x_' + node
         node_name = nodes._data[node]['label']
         node_domain = nodes._data[node]['domain']
         node_given = nodes._data[node]['probability']['given']
@@ -1598,7 +1474,6 @@ for (node in nodes._data)
             id: parseInt(node),
             label: node_name+"\n["+marginals+"]",
             domain: node_domain,
-//            probability: {given: [], table: table},
             color: {background: "", border: "black"},
         });
 
@@ -1606,27 +1481,20 @@ for (node in nodes._data)
         g.add(node_variable)
         factor_name = 'f_' + node
         probability_table = nodes._data[node]['probability']['table']
-        //probability_table = probability_table.map(float)
         probabilities = nd.array(probability_table)
         shape = []
         for (n of node_given)
         {
             n_domain = nodes._data[n]['domain']
-         //   probabilities=probabilities.reshape(n_domain.length,-1)
-           // console.log(probabilities.toString());
             shape.push(n_domain.length)
         }
-        console.log(shape.toString())
         shape.push(node_domain.length)
         probabilities=nd.NDArray.prototype.reshape.apply(probabilities,shape);
-//        probabilities = probabilities.reshape(shape)
-        console.log(probabilities.toString());
 
         node_id= max_id_nodes+parseInt(node)+1;
         nodesf.add({
             id: node_id,
             label: factor_name,
-        //            probability: {given: [], table: table},
             color: {background: "", border: "black"},
             shape: "box",
             font: { multi: true }
@@ -1634,21 +1502,17 @@ for (node in nodes._data)
         factor = new Factor(node_id, probabilities)
         g.add(factor)
         factors.push({'factor':factor, 'var': node, 'given': node_given, 'factor_name': factor_name})
-//        g.connect(node_id, node)
     }
     for (factor of factors)
     {
-     //   node_name = 'x_' + node
         node_given = factor['given'] 
         
         factor_name = factor['factor_name']
-        console.log(factor_name)
         let from = get_factor_id_from_label_node(factor_name);
         let variab=factor['var']
         for (n of factor['given'])
         {
             let to = parseInt(n);
-            console.log('dest'+n)
             if (edgesf.length == 0) {
                 max_e_id = -1;
             } else {
@@ -1707,47 +1571,6 @@ for (node in nodes._data)
      g.connect(from,factor['var'])
       }
 
-
-// //                n_domain = nodes[n]['domain']
-// //                shape.append(len(n_domain))
-//     }
-//            shape.append(len(node_domain))
-//            probabilities = probabilities.reshape(shape)
-//            factor = Factor(factor_name, probabilities)
-/*            first_name = 'x_' + node_given[0]
-            middle_names = []
-            node_given.pop(0)
-            for n in node_given:
-                middle_names.append('x_' + n)
-            factors[factor_name] = {'first': first_name, 'middle': middle_names, 'last': node_name}
-            g.add(factor)
-*/
-/*         }
-        else if (len(node_given) == 0)
-        {
-            factor_name = 'f_' + node
-            probability_table = nodes[node]['probability']['table']
-            probability_table = [float(f) for f in probability_table]
-            probabilities = np.array(probability_table)
-            factor = Factor(factor_name, probabilities)
-            single_factors[node_name] = factor_name
-            g.add(factor)
-        }
-    }
-    for (factor of factors)
-    {
-        first_name = factors[factor]['first']
-        middle_names = factors[factor]['middle']
-        last = factors[factor]['last']
-        g.connect(first_name, factor)
-        for m in middle_names:
-            g.connect(factor, m)
-        g.connect(factor, last)
-    }
-    for (node_name of single_factors)
-    {
-        g.connect(node_name, single_factors[node_name])
-    }*/
     return g
     
     
