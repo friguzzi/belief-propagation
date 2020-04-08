@@ -27,7 +27,7 @@ The application performs one round by cycling over all nodes and computing the o
 
 With this application the user can design a new Bayesian network, load it from an XMLBIF file,
 or load a example network. In order to perform propagation, the network is first converted to
-a factor network since belief propagation is simpler on factor networks.
+a factor graph since belief propagation is simpler on factor graphs.
 
 The source code is available at `<https://github.com/friguzzi/belief-propagation>`_.
 
