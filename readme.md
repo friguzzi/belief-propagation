@@ -18,3 +18,5 @@ Run
 make
 ```
 Then simply open `index.html` in a browser.
+
+The manual is available at https://friguzzi.github.io/belief-propagation/
