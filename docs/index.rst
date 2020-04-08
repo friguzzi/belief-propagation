@@ -1,4 +1,4 @@
-.. cplint documentation master file, created by
+.. bp documentation master file, created by
    sphinx-quickstart on Thu May 30 15:47:04 2019.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
@@ -28,6 +28,8 @@ The application performs one round by cycling over all nodes and computing the o
 With this application the user can design a new Bayesian network, load it from an XMLBIF file,
 or load a example network. In order to perform propagation, the network is first converted to
 a factor network since belief propagation is simpler on factor networks.
+
+The source code is available at `<https://github.com/friguzzi/belief-propagation>`_.
 
 Bayesian Network Building
 -------------------------
