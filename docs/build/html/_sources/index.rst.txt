@@ -54,4 +54,8 @@ Loopy Belief Propagation
 Support
 -------
 
-Send email to ml@unife.it
+Send email to fabrizio.riguzzi@unife.it
+
+Copyright by `Fabrizio Riguzzi
+<http://ml.unife.it/fabrizio-riguzzi/>`_, `Mirko Covizzi
+<https://github.com/MirkoCovizzi>`_ e Alan Guerzi.
