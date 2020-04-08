@@ -977,7 +977,7 @@ $("#start").click(function() {
     observations = {}
     $("#observations > div.row").find("div.btn-group").each(function() {
         let choice = $(this).find("label.active > input")[0];
-//        let a = $(this).find("label")[0];
+//        let a = $(this).find("input")[0];
 //        a.setAttribute('disabled','true')
         console.log('choice '+choice)
         observations[this.id] = choice.value;
