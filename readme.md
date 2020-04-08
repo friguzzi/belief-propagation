@@ -1,17 +1,20 @@
-## Installation
+# Belief Propagation Step by Step
+This web application performs belief propagation over Bayesian networks. Its purpose is to
+illustrate belief propagation step by step: inference can be peformed incrementally so that
+the user can investigate the content of messages and the values of marginals during execution.
 
-## Requires Python 3.X
 
+## Intallation
+It requires the following NodeJS packages:
+- `browserify`
+- `elementtree`
+- `nd4js`
+- `xml-formatter`
+
+to be installed with `npm install -g <package>`.
+
+Run 
 ```
-> cd belief_propagation
-> pip install -r requirements.txt
+make
 ```
-
-## Usage
-
-```
-> cd belief_propagation
-> python main.py
-```
-
 Then simply open index.html in a browser.
