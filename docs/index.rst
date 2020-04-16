@@ -31,6 +31,12 @@ a factor graph since belief propagation is simpler on factor graphs.
 
 The source code is available at `<https://github.com/friguzzi/belief-propagation>`_.
 
+For a treatment of the Belief Propagation algorithm you can look at
+ - `Barber, D. Bayesian Reasoning and Machine Learning, Cambridge University Press, 2012, page 88. <http://web4.cs.ucl.ac.uk/staff/D.Barber/pmwiki/pmwiki.php?n=Brml.HomePage>`_
+ - Koller, Daphne, and Nir Friedman. Probabilistic graphical models: principles and techniques. MIT press, 2009.
+ - `Pearl, Judea. Reverend Bayes on inference engines: A distributed hierarchical approach, AAAI 1982. <https://www.aaai.org/Papers/AAAI/1982/AAAI82-032.pdf>`_
+
+
 Bayesian Network Building
 -------------------------
 
