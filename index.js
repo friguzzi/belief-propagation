@@ -31,328 +31,6 @@ let epsilon // the sum of the absolute difference of the components of two margi
 
 activate_interactions()
 
-function delete_node(node_id) 
-/* remove a node from the vis.js graph */
-{
-    let to_edges = get_to_edges_from_node(node_id);
-    let from_edges = get_from_edges_to_node(node_id);
-    for (const e in to_edges) {
-        delete_edge(to_edges[e]);
-    }
-    for (const e in from_edges) {
-        delete_edge(from_edges[e]);
-    }
-    nodes.remove(node_id);
-}
-
-function delete_edge(edge_id) 
-/* remove an edge from the vis.js graph */
-{
-    let edge = edges.get(edge_id);
-    let node_id = edge.from;
-    let to_id = edge.to;
-    let to_node = nodes.get(to_id);
-    if (to_node !== null) {
-        let index = to_node.probability.given.indexOf(node_id.toString());
-        to_node.probability.given.splice(index, 1);
-        update_probabilities(to_id);
-    }
-    edges.remove(edge_id);
-}
-
-function update_probabilities(node_id) 
-/* updates the probability of a node in the vis.js graph */
-{
-    let node = nodes.get(node_id);
-    let new_table = [];
-    let index_arrays = generate_index_arrays(node_id);
-    for (const i_array in index_arrays) {
-        new_table.push(1 / node.domain.length);
-    }
-    node.probability.table = new_table;
-}
-
-function get_probability_cursor(node_id, index_array) {
-    /*
-    This function takes the Node ID and an index array, for example [0, 0, 1] means that I want the
-    cursor of the probability in which the first given is True, the second given is True and the Node, whose ID is specified,
-    is False (if all of the three nodes have domains (True, False).
-     */
-    let node = nodes.get(node_id);
-    let given = node.probability.given;
-    let cursor = 0;
-    for (const i in index_array) {
-        let index = parseInt(index_array[i]);
-        if (i == index_array.length - 1) {
-            cursor += index;
-        } else {
-            let g_id = given[i];
-            let g2_id;
-            let g2_node;
-            let combs_g_fwd = 1;
-            for (const g2 in given) {
-                g2_id = given[g2];
-                g2_node = nodes.get(g2_id);
-                if (g2_id > g_id) {
-                    combs_g_fwd *= g2_node.domain.length;
-                }
-            }
-            combs_g_fwd *= node.domain.length;
-            cursor += index * combs_g_fwd;
-        }
-    }
-    return cursor;
-}
-
-function get_probability(node_id, index_array) {
-    /*
-    After getting the cursor, get the probability by moving to the offset in the linear array which contains the
-    probabilities.
-     */
-    let cursor = get_probability_cursor(node_id, index_array);
-    let node = nodes.get(node_id);
-    return node.probability.table[cursor];
-}
-
-function set_probability(node_id, index_array, value) {
-    /*
-    After getting the cursor, get the probability by moving to the offset in the linear array which contains the
-    probabilities.
-     */
-    let cursor = get_probability_cursor(node_id, index_array);
-    let node = nodes.get(node_id);
-    node.probability.table[cursor] = value;
-    return true;
-}
-
-function generate_index_arrays(node_id) {
-    /*
-    This function generates all the index arrays for the specified Node. The way it works is by first considering the
-    domains of all the Given Nodes (the source nodes) and then generating, in the correct logical order, all the
-    possible combinations of indexes.
-    This functions works through iteration and not recursion.
-
-    Example:
-
-    Domains:
-    Node 1: (T, F)
-    Node 2: (T, F)
-    Node 3: (A, B, C)
-
-    Output:
-    [0, 0, 0]
-    [0, 0, 1]
-    [0, 0, 2]
-    [0, 1, 0]
-    [0, 1, 1]
-    [0, 1, 2]
-    [1, 0, 0]
-    [1, 0, 1]
-    ...
-     */
-    let node = nodes.get(node_id);
-    let given = node.probability.given;
-    let g_id;
-    let g_node;
-    let index_arrays = [];
-    let combs = 1;
-    for (const g in given) {
-        g_id = given[g];
-        g_node = nodes.get(g_id);
-        combs *= g_node.domain.length;
-    }
-    combs *= node.domain.length;
-    for (let i = 0; i < combs; i++) {
-        index_arrays.push([]);
-    }
-    for (const g in given) {
-        g_id = given[g];
-        g_node = nodes.get(g_id);
-        let g2_id;
-        let g2_node;
-        let combs_g_fwd = 1;
-        let combs_g_bwd = 1;
-        for (const g2 in given) {
-            g2_id = given[g2];
-            g2_node = nodes.get(g2_id);
-            if (g2 > g) {
-                combs_g_fwd *= g2_node.domain.length;
-            }
-            if (g2 < g) {
-                combs_g_bwd *= g2_node.domain.length;
-            }
-        }
-        combs_g_fwd *= node.domain.length;
-        for (let times = 0; times < combs_g_bwd; times++) {
-            for (const d in g_node.domain) {
-                for (let i = 0; i < combs_g_fwd; i++) {
-                    index_arrays[times * combs_g_fwd * g_node.domain.length + parseInt(d) * combs_g_fwd + i].push(parseInt(d));
-                }
-            }
-        }
-    }
-
-    let tot_times = combs / node.domain.length;
-    for (let times = 0; times < tot_times; times++) {
-        for (const d in node.domain) {
-            index_arrays[times * node.domain.length + parseInt(d)].push(parseInt(d));
-        }
-    }
-    return index_arrays;
-}
-
-
-function generate_index_arrays_factor(node_id) {
-    /*
-    This function generates all the index arrays for the specified Node. The way it works is by first considering the
-    domains of all the Given Nodes (the source nodes) and then generating, in the correct logical order, all the
-    possible combinations of indexes.
-    This functions works through iteration and not recursion.
-
-    Example:
-
-    Domains:
-    Node 1: (T, F)
-    Node 2: (T, F)
-    Node 3: (A, B, C)
-
-    Output:
-    [0, 0, 0]
-    [0, 0, 1]
-    [0, 0, 2]
-    [0, 1, 0]
-    [0, 1, 1]
-    [0, 1, 2]
-    [1, 0, 0]
-    [1, 0, 1]
-    ...
-     */
-    let node = fg_nodes.get(node_id);
-    let factor=all_fg_nodes[node_id]
-    let given = factor.connections
-    let g_id;
-    let g_node;
-    let index_arrays = [];
-    let combs = 1;
-    for (const g in given) {
-        g_id = given[g];
-        g_node = fg_nodes.get(g_id.name);
-        combs *= g_node.domain.length;
-    }
-    for (let i = 0; i < combs; i++) {
-        index_arrays.push([]);
-    }
-    for (const g in given) {
-        g_id = given[g];
-        g_node = fg_nodes.get(g_id.name);
-        let g2_id;
-        let g2_node;
-        let combs_g_fwd = 1;
-        let combs_g_bwd = 1;
-        for (const g2 in given) {
-            g2_id = given[g2];
-            g2_node = fg_nodes.get(g2_id.name);
-            if (g2 > g) {
-                combs_g_fwd *= g2_node.domain.length;
-            }
-            if (g2 < g) {
-                combs_g_bwd *= g2_node.domain.length;
-            }
-        }
-        for (let times = 0; times < combs_g_bwd; times++) {
-            for (const d in g_node.domain) {
-                for (let i = 0; i < combs_g_fwd; i++) {
-                    index_arrays[times * combs_g_fwd * g_node.domain.length + parseInt(d) * combs_g_fwd + i].push(parseInt(d));
-                }
-            }
-        }
-    }
-
-    return index_arrays;
-}
-
-function get_nodes_indip()
-{
-    /*
-    By checking how many given (source) nodes each node has, we can know which nodes are indipendent.
-     */
-    let indip = [];
-    for (const e in nodes._data) {
-        if (nodes._data[e].probability.given.length == 0)
-            indip.push(e);
-    }
-    return indip;
-}
-
-function color_nodes_indip()
-{
-    let nodes_indip = get_nodes_indip();
-    let node;
-    for (const i in nodes_indip) {
-        let id = nodes_indip[i];
-        node = nodes.get(id);
-        node.color.background = "orange";
-        nodes.update(node);
-    }
-}
-
-function get_id_from_label_node(string)
-{
-    for (const e in nodes._data) {
-        if (nodes._data[e].label === string) {
-            return e;
-        }
-    }
-}
-
-function get_edge_id_from_endpoints(src,dest)
-{
-    for (const e in fg_edges._data)
-    {
-        let edge=fg_edges._data[e]
-        if ((edge.from==src && edge.to==dest)||
-        (edge.from==dest && edge.to==src))
-            return edge.id    
-    }
-}
-
-function get_factor_id_from_label_node(string)
-{
-    for (const e in fg_nodes._data) {
-        if (fg_nodes._data[e].label === string) {
-            return e;
-        }
-    }
-}
-function get_id_from_label_edges(from, to)
-{
-    let from_id = get_id_from_label_node(from);
-    let to_id = get_id_from_label_node(to);
-    for (const e in edges._data) {
-        if (edges._data[e].from == from_id && edges._data[e].to == to_id)
-            return e;
-    }
-}
-
-function get_to_edges_from_node(node_id) {
-    let ret_edges = [];
-    for (const e in edges._data) {
-        if (edges._data[e].from == node_id) {
-            ret_edges.push(e);
-        }
-    }
-    return ret_edges;
-}
-
-function get_from_edges_to_node(node_id) {
-    let ret_edges = [];
-    for (const e in edges._data) {
-        if (edges._data[e].to == node_id) {
-            ret_edges.push(e);
-        }
-    }
-    return ret_edges;
-}
 
 function hide_error_success() {
     $("#error_dialog").hide();
@@ -772,7 +450,6 @@ $("#button_probability_table").click(function() {
     }
     $("#name_choice").text("Probability Table");
 
-   // color_nodes_indip();
 });
 
 $("#button_query").click(function() {
@@ -1724,4 +1401,326 @@ function create_dynamic_observations() {
     }
 
     $("#observations").html(html_out);
+}
+
+
+/* helper functions */
+function delete_node(node_id) 
+/* remove a node from the vis.js graph */
+{
+    let to_edges = get_to_edges_from_node(node_id);
+    let from_edges = get_from_edges_to_node(node_id);
+    for (const e in to_edges) {
+        delete_edge(to_edges[e]);
+    }
+    for (const e in from_edges) {
+        delete_edge(from_edges[e]);
+    }
+    nodes.remove(node_id);
+}
+
+function delete_edge(edge_id) 
+/* remove an edge from the vis.js graph */
+{
+    let edge = edges.get(edge_id);
+    let node_id = edge.from;
+    let to_id = edge.to;
+    let to_node = nodes.get(to_id);
+    if (to_node !== null) {
+        let index = to_node.probability.given.indexOf(node_id.toString());
+        to_node.probability.given.splice(index, 1);
+        update_probabilities(to_id);
+    }
+    edges.remove(edge_id);
+}
+
+function update_probabilities(node_id) 
+/* updates the probability of a node in the vis.js graph */
+{
+    let node = nodes.get(node_id);
+    let new_table = [];
+    let index_arrays = generate_index_arrays(node_id);
+    for (const i_array in index_arrays) {
+        new_table.push(1 / node.domain.length);
+    }
+    node.probability.table = new_table;
+}
+
+function get_probability_cursor(node_id, index_array) {
+    /*
+    This function takes the Node ID and an index array, for example [0, 0, 1] means that I want the
+    cursor of the probability in which the first given is True, the second given is True and the Node, whose ID is specified,
+    is False (if all of the three nodes have domains (True, False).
+     */
+    let node = nodes.get(node_id);
+    let given = node.probability.given;
+    let cursor = 0;
+    for (const i in index_array) {
+        let index = parseInt(index_array[i]);
+        if (i == index_array.length - 1) {
+            cursor += index;
+        } else {
+            let g_id = given[i];
+            let g2_id;
+            let g2_node;
+            let combs_g_fwd = 1;
+            for (const g2 in given) {
+                g2_id = given[g2];
+                g2_node = nodes.get(g2_id);
+                if (g2_id > g_id) {
+                    combs_g_fwd *= g2_node.domain.length;
+                }
+            }
+            combs_g_fwd *= node.domain.length;
+            cursor += index * combs_g_fwd;
+        }
+    }
+    return cursor;
+}
+
+function get_probability(node_id, index_array) {
+    /*
+    After getting the cursor, get the probability by moving to the offset in the linear array which contains the
+    probabilities.
+     */
+    let cursor = get_probability_cursor(node_id, index_array);
+    let node = nodes.get(node_id);
+    return node.probability.table[cursor];
+}
+
+function set_probability(node_id, index_array, value) {
+    /*
+    After getting the cursor, get the probability by moving to the offset in the linear array which contains the
+    probabilities.
+     */
+    let cursor = get_probability_cursor(node_id, index_array);
+    let node = nodes.get(node_id);
+    node.probability.table[cursor] = value;
+    return true;
+}
+
+function generate_index_arrays(node_id) {
+    /*
+    This function generates all the index arrays for the specified Node. The way it works is by first considering the
+    domains of all the Given Nodes (the source nodes) and then generating, in the correct logical order, all the
+    possible combinations of indexes.
+    This functions works through iteration and not recursion.
+
+    Example:
+
+    Domains:
+    Node 1: (T, F)
+    Node 2: (T, F)
+    Node 3: (A, B, C)
+
+    Output:
+    [0, 0, 0]
+    [0, 0, 1]
+    [0, 0, 2]
+    [0, 1, 0]
+    [0, 1, 1]
+    [0, 1, 2]
+    [1, 0, 0]
+    [1, 0, 1]
+    ...
+     */
+    let node = nodes.get(node_id);
+    let given = node.probability.given;
+    let g_id;
+    let g_node;
+    let index_arrays = [];
+    let combs = 1;
+    for (const g in given) {
+        g_id = given[g];
+        g_node = nodes.get(g_id);
+        combs *= g_node.domain.length;
+    }
+    combs *= node.domain.length;
+    for (let i = 0; i < combs; i++) {
+        index_arrays.push([]);
+    }
+    for (const g in given) {
+        g_id = given[g];
+        g_node = nodes.get(g_id);
+        let g2_id;
+        let g2_node;
+        let combs_g_fwd = 1;
+        let combs_g_bwd = 1;
+        for (const g2 in given) {
+            g2_id = given[g2];
+            g2_node = nodes.get(g2_id);
+            if (g2 > g) {
+                combs_g_fwd *= g2_node.domain.length;
+            }
+            if (g2 < g) {
+                combs_g_bwd *= g2_node.domain.length;
+            }
+        }
+        combs_g_fwd *= node.domain.length;
+        for (let times = 0; times < combs_g_bwd; times++) {
+            for (const d in g_node.domain) {
+                for (let i = 0; i < combs_g_fwd; i++) {
+                    index_arrays[times * combs_g_fwd * g_node.domain.length + parseInt(d) * combs_g_fwd + i].push(parseInt(d));
+                }
+            }
+        }
+    }
+
+    let tot_times = combs / node.domain.length;
+    for (let times = 0; times < tot_times; times++) {
+        for (const d in node.domain) {
+            index_arrays[times * node.domain.length + parseInt(d)].push(parseInt(d));
+        }
+    }
+    return index_arrays;
+}
+
+
+function generate_index_arrays_factor(node_id) {
+    /*
+    This function generates all the index arrays for the specified Node. The way it works is by first considering the
+    domains of all the Given Nodes (the source nodes) and then generating, in the correct logical order, all the
+    possible combinations of indexes.
+    This functions works through iteration and not recursion.
+
+    Example:
+
+    Domains:
+    Node 1: (T, F)
+    Node 2: (T, F)
+    Node 3: (A, B, C)
+
+    Output:
+    [0, 0, 0]
+    [0, 0, 1]
+    [0, 0, 2]
+    [0, 1, 0]
+    [0, 1, 1]
+    [0, 1, 2]
+    [1, 0, 0]
+    [1, 0, 1]
+    ...
+     */
+    let node = fg_nodes.get(node_id);
+    let factor=all_fg_nodes[node_id]
+    let given = factor.connections
+    let g_id;
+    let g_node;
+    let index_arrays = [];
+    let combs = 1;
+    for (const g in given) {
+        g_id = given[g];
+        g_node = fg_nodes.get(g_id.name);
+        combs *= g_node.domain.length;
+    }
+    for (let i = 0; i < combs; i++) {
+        index_arrays.push([]);
+    }
+    for (const g in given) {
+        g_id = given[g];
+        g_node = fg_nodes.get(g_id.name);
+        let g2_id;
+        let g2_node;
+        let combs_g_fwd = 1;
+        let combs_g_bwd = 1;
+        for (const g2 in given) {
+            g2_id = given[g2];
+            g2_node = fg_nodes.get(g2_id.name);
+            if (g2 > g) {
+                combs_g_fwd *= g2_node.domain.length;
+            }
+            if (g2 < g) {
+                combs_g_bwd *= g2_node.domain.length;
+            }
+        }
+        for (let times = 0; times < combs_g_bwd; times++) {
+            for (const d in g_node.domain) {
+                for (let i = 0; i < combs_g_fwd; i++) {
+                    index_arrays[times * combs_g_fwd * g_node.domain.length + parseInt(d) * combs_g_fwd + i].push(parseInt(d));
+                }
+            }
+        }
+    }
+
+    return index_arrays;
+}
+
+function get_nodes_indip()
+{
+    /*
+    By checking how many given (source) nodes each node has, we can know which nodes are indipendent.
+     */
+    let indip = [];
+    for (const e in nodes._data) {
+        if (nodes._data[e].probability.given.length == 0)
+            indip.push(e);
+    }
+    return indip;
+}
+
+
+function get_id_from_label_node(string)
+/* obtain node id from its label in the vis.js graph for the Bayesian network */
+{
+    for (const e in nodes._data) {
+        if (nodes._data[e].label === string) {
+            return e;
+        }
+    }
+}
+
+function get_edge_id_from_endpoints(src,dest)
+/* obtain edge id from its endpoints in the vis.js graph  for the Bayesian network */
+{
+    for (const e in fg_edges._data)
+    {
+        let edge=fg_edges._data[e]
+        if ((edge.from==src && edge.to==dest)||
+        (edge.from==dest && edge.to==src))
+            return edge.id    
+    }
+}
+
+function get_factor_id_from_label_node(string)
+/* obtain factor id from its label in the vis.js graph for the factor graph */
+{
+    for (const e in fg_nodes._data) {
+        if (fg_nodes._data[e].label === string) {
+            return e;
+        }
+    }
+}
+function get_id_from_label_edges(from, to)
+/* obtain edge id from its endpoints labels in the vis.js graph  for the Bayesian network */
+{
+    let from_id = get_id_from_label_node(from);
+    let to_id = get_id_from_label_node(to);
+    for (const e in edges._data) {
+        if (edges._data[e].from == from_id && edges._data[e].to == to_id)
+            return e;
+    }
+}
+
+function get_to_edges_from_node(node_id) 
+/* obtain edges from a node vis.js graph  for the Bayesian network */
+{
+    let ret_edges = [];
+    for (const e in edges._data) {
+        if (edges._data[e].from == node_id) {
+            ret_edges.push(e);
+        }
+    }
+    return ret_edges;
+}
+
+function get_from_edges_to_node(node_id) 
+/* obtain edges to a node vis.js graph  for the Bayesian network */
+{
+    let ret_edges = [];
+    for (const e in edges._data) {
+        if (edges._data[e].to == node_id) {
+            ret_edges.push(e);
+        }
+    }
+    return ret_edges;
 }
