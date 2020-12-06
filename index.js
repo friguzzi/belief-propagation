@@ -1,18 +1,20 @@
 let et = require('elementtree');
 let format = require('xml-formatter');
 const nd = require('nd4js');
-let nodes = new vis.DataSet([]); // set of nodes of the Bayesian network
-let edges = new vis.DataSet([]); // set of edges of the Bayesian network
+let nodes = new vis.DataSet([]); // set of nodes of the Bayesian network vis.js object
+let edges = new vis.DataSet([]); // set of edges of the Bayesian network vis.js object
 let container = document.getElementById('graph');
-let network = new vis.Network(container, {nodes: nodes, edges: edges}, {}); // vis.js networks
+let network = new vis.Network(container, {nodes: nodes, edges: edges}, {}); // vis.js network
 let fg_network // factor graph network
-let fg_nodes = new vis.DataSet([]); // set of nodes of the factor graph
-let fg_edges = new vis.DataSet([]); // set of edges of the factor graph
+let fg_nodes = new vis.DataSet([]); // set of nodes of the factor graph vis.js object
+let fg_edges = new vis.DataSet([]); // set of edges of the factor graph vis.js object
+var factor_graph; // Factor Graph
+
+/* global variables for keeping the state among successive inference steps */
 let round=0 // belief propagation round
 let cur_marginals; // current marginals
 let last_marginals; // previous marginals
-var factor_graph; // Factor Graph
-let nodes_global = {}
+let all_fg_nodes = {} // 
 let senders
 let sender
 let next_dests
@@ -214,7 +216,7 @@ function generate_index_arrays_factor(node_id) {
     ...
      */
     let node = fg_nodes.get(node_id);
-    let factor=nodes_global[node_id]
+    let factor=all_fg_nodes[node_id]
     let given = factor.connections
     let g_id;
     let g_node;
@@ -975,7 +977,7 @@ $("#start").click(function() {
 
     }    
     g.start()
-    for (const n of nodes_global)
+    for (const n of all_fg_nodes)
         if (n instanceof Factor)
         {
             let title=create_factor_table(n.name)
@@ -1243,13 +1245,13 @@ class FactorGraph
         round=0
         $("#round").text("Round "+round)
         epsilon = 1
-        nodes_global=Object.values(this.nodes)
+        all_fg_nodes=Object.values(this.nodes)
 
-        for (const node of nodes_global)
+        for (const node of all_fg_nodes)
             node.mailbox={}
         cur_marginals = this.get_marginals()
 
-        for (node of nodes_global)
+        for (node of all_fg_nodes)
             if (node instanceof Variable)
             {
                 let message = new Mu(node, ones(node.size))
@@ -1260,8 +1262,8 @@ class FactorGraph
                 }
 
             }
-        let vars = nodes_global.filter(node=> node instanceof Variable)
-        let fs = nodes_global.filter(node=>node instanceof Factor)
+        let vars = all_fg_nodes.filter(node=> node instanceof Variable)
+        let fs = all_fg_nodes.filter(node=>node instanceof Factor)
         senders = fs.concat(vars)
         sender=senders.shift()
         next_dests=[...sender.connections]
@@ -1281,8 +1283,8 @@ class FactorGraph
                 {
                     round+=1
                     $("#round").text("Round "+round)
-                    let vars = nodes_global.filter(node=> node instanceof Variable)
-                    let fs = nodes_global.filter(node=>node instanceof Factor)
+                    let vars = all_fg_nodes.filter(node=> node instanceof Variable)
+                    let fs = all_fg_nodes.filter(node=>node instanceof Factor)
                     senders = fs.concat(vars)
                 }
                 else
@@ -1585,7 +1587,7 @@ for (node in nodes._data)
 
 
 function create_factor_table(node_id) {
-    let node = nodes_global[node_id];
+    let node = all_fg_nodes[node_id];
     let table = "<table>";
     table += "<thead id='thead'><tr>";
     let str;
