@@ -9,8 +9,8 @@ let fg_network // factor graph network
 let fg_nodes = new vis.DataSet([]); // set of nodes of the factor graph
 let fg_edges = new vis.DataSet([]); // set of edges of the factor graph
 let round=0 // belief propagation round
-let cur_marginals;
-let last_marginals;
+let cur_marginals; // current marginals
+let last_marginals; // previous marginals
 var factor_graph; // Factor Graph
 let nodes_global = {}
 let senders
@@ -1008,15 +1008,17 @@ function zeros(size)
 {
     return nd.tabulate([size], (i) => 0);
 }
-class Node {
+class Node 
+/* class encoding a node of a factor graph */
+{
+/*      name: Name of the node
+        mailbox: structure that contains the messages received
+        connections: structure that contains references to the nodes connceted to this node
+*/
     name;
     mailbox;
     connections;
     constructor(name){
-/*        name: Name of the node
-        mailbox: structure that contains the messages received
-        connections: structure that contains references to the nodes connceted to this node
-*/
         this.name = name
         this.mailbox = {}
         this.connections = []
@@ -1077,7 +1079,9 @@ class Node {
     }
 }
 
-class Variable extends Node{
+class Variable extends Node
+/* class encoding a variable node of a factor graph */
+{
     size;
     observed_state;
     constructor(name, size){
@@ -1137,7 +1141,9 @@ class Variable extends Node{
     }
 }
 
-class Factor extends Node{
+class Factor extends Node
+/* class encoding a factor of a factor graph */
+{
     potential;
     constructor(name, potentials){
         super(name)
@@ -1222,6 +1228,7 @@ class Mu
 }
 
 class FactorGraph
+/* class encoding a factor graph */
 {    
     nodes;
 
@@ -1231,6 +1238,7 @@ class FactorGraph
     }
 
     start()
+    /* starting inference */
     {
         round=0
         $("#round").text("Round "+round)
