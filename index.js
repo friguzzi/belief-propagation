@@ -11,7 +11,7 @@ let fg_edges = new vis.DataSet([]); // set of edges of the factor graph
 let round=0 // belief propagation round
 let cur_marginals;
 let last_marginals;
-var g;
+var factor_graph; // Factor Graph
 let nodes_global = {}
 let senders
 let sender
@@ -775,7 +775,7 @@ $("#button_query").click(function() {
     $("#div_query").show();
 
     create_dynamic_observations();
-    g=build_graph()
+    factor_graph=build_graph()
     $('#start').removeAttr("disabled");
     $("#step").attr("disabled",true);
     $("#step_one_round").attr("disabled",true);
@@ -908,7 +908,7 @@ $("#save_set_properties").click(function() {
 });
 
 $("#step").click(function() {
-    g.step()
+    factor_graph.step()
     
 });
 
@@ -916,7 +916,7 @@ $("#step_one_round").click(function() {
     $('#start').attr('disabled',true)
     let old_round=round
     while (round<old_round+1)
-        g.step()
+        factor_graph.step()
 
         
 });
@@ -928,12 +928,12 @@ $("#run_to_convergence").click(function() {
     {
         if (old_round!=round)
         {
-            let marg=g.get_marginals()
+            let marg=factor_graph.get_marginals()
             epsilon=compare_marginals(marg,last_marginals)
             old_round=round
             last_marginals=marg
         }
-        g.step()
+        factor_graph.step()
     }
 
         
@@ -952,8 +952,8 @@ $("#start").click(function() {
         let choice = $(this).find("label.active > input")[0];
         observations[this.id] = choice.value;
     });
-    observe(g, observations)
-    cur_marginals = g.get_marginals()
+    observe(factor_graph, observations)
+    cur_marginals = factor_graph.get_marginals()
     for (const var_n in cur_marginals)
     {
         let var_node =fg_nodes.get(var_n);
