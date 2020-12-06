@@ -1,13 +1,13 @@
-let nodes = new vis.DataSet([]);
-let edges = new vis.DataSet([]);
-let container = document.getElementById('graph');
-let network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
-let networkf
-let nodesf = new vis.DataSet([]);
-let edgesf = new vis.DataSet([]);
 let et = require('elementtree');
 let format = require('xml-formatter');
 const nd = require('nd4js');
+let nodes = new vis.DataSet([]); // set of nodes of the Bayesian network
+let edges = new vis.DataSet([]); // set of edges of the Bayesian network
+let container = document.getElementById('graph');
+let network = new vis.Network(container, {nodes: nodes, edges: edges}, {}); // vis.js networks
+let networkf
+let fg_nodes = new vis.DataSet([]);
+let fg_edges = new vis.DataSet([]);
 let round=0
 let cur_marginals;
 let last_marginals;
@@ -213,7 +213,7 @@ function generate_index_arrays_factor(node_id) {
     [1, 0, 1]
     ...
      */
-    let node = nodesf.get(node_id);
+    let node = fg_nodes.get(node_id);
     let factor=nodes_global[node_id]
     let given = factor.connections
     let g_id;
@@ -222,7 +222,7 @@ function generate_index_arrays_factor(node_id) {
     let combs = 1;
     for (const g in given) {
         g_id = given[g];
-        g_node = nodesf.get(g_id.name);
+        g_node = fg_nodes.get(g_id.name);
         combs *= g_node.domain.length;
     }
     for (let i = 0; i < combs; i++) {
@@ -230,14 +230,14 @@ function generate_index_arrays_factor(node_id) {
     }
     for (const g in given) {
         g_id = given[g];
-        g_node = nodesf.get(g_id.name);
+        g_node = fg_nodes.get(g_id.name);
         let g2_id;
         let g2_node;
         let combs_g_fwd = 1;
         let combs_g_bwd = 1;
         for (const g2 in given) {
             g2_id = given[g2];
-            g2_node = nodesf.get(g2_id.name);
+            g2_node = fg_nodes.get(g2_id.name);
             if (g2 > g) {
                 combs_g_fwd *= g2_node.domain.length;
             }
@@ -293,9 +293,9 @@ function get_id_from_label_node(string)
 
 function get_edge_id_from_endpoints(src,dest)
 {
-    for (const e in edgesf._data)
+    for (const e in fg_edges._data)
     {
-        let edge=edgesf._data[e]
+        let edge=fg_edges._data[e]
         if ((edge.from==src && edge.to==dest)||
         (edge.from==dest && edge.to==src))
             return edge.id    
@@ -304,8 +304,8 @@ function get_edge_id_from_endpoints(src,dest)
 
 function get_factor_id_from_label_node(string)
 {
-    for (const e in nodesf._data) {
-        if (nodesf._data[e].label === string) {
+    for (const e in fg_nodes._data) {
+        if (fg_nodes._data[e].label === string) {
             return e;
         }
     }
@@ -956,7 +956,7 @@ $("#start").click(function() {
     cur_marginals = g.get_marginals()
     for (const var_n in cur_marginals)
     {
-        let var_node =nodesf.get(var_n);
+        let var_node =fg_nodes.get(var_n);
         let a = var_node['label'].split("\n");
         let node_marg=cur_marginals[parseInt(var_n)]
         let marginals=node_marg.mapElems(x=>x.toFixed(2))
@@ -971,7 +971,7 @@ $("#start").click(function() {
            title+="<td>"+full_marg_arr[index]+"</td>"
            title+="</tr></tbody></table>"
         
-        nodesf.update([{id: var_n, label: new_lab, 'title':title}]);
+        fg_nodes.update([{id: var_n, label: new_lab, 'title':title}]);
 
     }    
     g.start()
@@ -979,7 +979,7 @@ $("#start").click(function() {
         if (n instanceof Factor)
         {
             let title=create_factor_table(n.name)
-            nodesf.update({id:n.name,'title':title})
+            fg_nodes.update({id:n.name,'title':title})
         }
     $('#start').attr('disabled',true)
     $("#step").removeAttr("disabled");
@@ -1042,8 +1042,8 @@ class Node {
             this.mailbox[step_number].push(mu);
         }
         let edge_id=get_edge_id_from_endpoints(this.name,mu.source_node.name)
-        let label=edgesf.get(edge_id).label
-        let title=edgesf.get(edge_id).title
+        let label=fg_edges.get(edge_id).label
+        let title=fg_edges.get(edge_id).title
         let lines=label.split("\n")
         let message=mu.value.mapElems(x=>x.toFixed(2))
         let mess_array=message.toNestedArray()
@@ -1058,7 +1058,7 @@ class Node {
             for (let m in full_mess_array)
                 title_mess+="<td>"+full_mess_array[m]+"</td>"
             let new_title=title_lines[0]+"\n"+title_lines[1]+"\n<tr>"+title_mess+"</tr>\n"+title_lines[3]
-            edgesf.update({id:edge_id,label:new_lab,'title':new_title})
+            fg_edges.update({id:edge_id,label:new_lab,'title':new_title})
 
             old_edge_label=lines[0]+"\n"+mess
         }
@@ -1071,7 +1071,7 @@ class Node {
             for (let m in full_mess_array)
                 title_mess+="<td>"+full_mess_array[m]+"</td>"
             let new_title=title_lines[0]+"\n<tr>"+title_mess+"</tr>\n"+title_lines[2]+"\n"+title_lines[3]
-            edgesf.update({id:edge_id,label:new_lab,'title':new_title})
+            fg_edges.update({id:edge_id,label:new_lab,'title':new_title})
             old_edge_label=mess+"\n"+lines[1]
         }
     }
@@ -1248,7 +1248,7 @@ class FactorGraph
                 for (const dest of node.connections)
                 {
                     dest.propagate(round, message)
-                    edgesf.update({id:old_edge_id,label:old_edge_label})
+                    fg_edges.update({id:old_edge_id,label:old_edge_label})
                 }
 
             }
@@ -1263,7 +1263,7 @@ class FactorGraph
 
     step()
     {
-        edgesf.update({id:old_edge_id,label:old_edge_label})
+        fg_edges.update({id:old_edge_id,label:old_edge_label})
 
         if (next_dests.length==0)
         {
@@ -1291,7 +1291,7 @@ class FactorGraph
         cur_marginals = this.get_marginals()
         for (const var_n in cur_marginals)
         {
-            let var_node =nodesf.get(var_n);
+            let var_node =fg_nodes.get(var_n);
             let a = var_node['label'].split("\n");
             let node_marg=cur_marginals[parseInt(var_n)]
             let marginals=node_marg.mapElems(x=>x.toFixed(2))
@@ -1305,7 +1305,7 @@ class FactorGraph
             for (const index in full_marg_arr)
                 title+="<td>"+full_marg_arr[index]+"</td>"
             title+="</tr></tbody></table>"
-            nodesf.update([{id: var_n, label: new_lab, 'title':title}]);
+            fg_nodes.update([{id: var_n, label: new_lab, 'title':title}]);
 
         }
     }
@@ -1353,13 +1353,13 @@ class FactorGraph
             cur_marginals = this.get_marginals()
             for (const var_n in cur_marginals)
             {
-                let var_node =nodesf.get(var_n);
+                let var_node =fg_nodes.get(var_n);
                 let a = var_node['label'].split("\n");
                 let node_marg=cur_marginals[parseInt(var_n)]
                 let marginals=node_marg.mapElems(x=>x.toFixed(2))
                 let marg_arr=marginals.toNestedArray()
                 let new_lab=a[0]+"\n["+marg_arr+"]"
-                nodesf.update([{id: var_n, label: new_lab}]);
+                fg_nodes.update([{id: var_n, label: new_lab}]);
 
             }
         }
@@ -1449,9 +1449,9 @@ function compare_marginals(marginal_1, marginal_2)
 
 function build_graph()
 {
-    nodesf.clear();
-    edgesf.clear();
-    networkf = new vis.Network(container, {nodes: nodesf, edges: edgesf}, { interaction:{hover:true}});
+    fg_nodes.clear();
+    fg_edges.clear();
+    networkf = new vis.Network(container, {nodes: fg_nodes, edges: fg_edges}, { interaction:{hover:true}});
     single_factors = {}
     g = new FactorGraph()
     let max_id_nodes;
@@ -1469,7 +1469,7 @@ for (node in nodes._data)
         node_variable = new Variable(parseInt(node), node_domain.length)
         marginal_array=node_variable.marginal().toNestedArray();
         marginals=marginal_array.map(x=>x.toFixed(2))
-        nodesf.add({
+        fg_nodes.add({
             id: parseInt(node),
             label: node_name+"\n["+marginals+"]",
             domain: node_domain,
@@ -1491,7 +1491,7 @@ for (node in nodes._data)
         probabilities=nd.NDArray.prototype.reshape.apply(probabilities,shape);
 
         node_id= max_id_nodes+parseInt(node)+1;
-        nodesf.add({
+        fg_nodes.add({
             id: node_id,
             label: factor_name,
             color: {background: "", border: "black"},
@@ -1512,13 +1512,13 @@ for (node in nodes._data)
         for (n of factor['given'])
         {
             let to = parseInt(n);
-            if (edgesf.length == 0) {
+            if (fg_edges.length == 0) {
                 max_e_id = -1;
             } else {
-                max_e_id = Math.max(...Object.keys(edgesf._data));
+                max_e_id = Math.max(...Object.keys(fg_edges._data));
             }
 
-            let var_node =nodesf.get(n);
+            let var_node =fg_nodes.get(n);
             let title="<table><thead><tr><th></th>"
             for (const index in var_node.domain)
                 title+="<th>"+var_node.domain[index]+"</th>"
@@ -1531,7 +1531,7 @@ for (node in nodes._data)
             title+="</tr>\n</tbody></table>"
 
 
-            edgesf.add({
+            fg_edges.add({
                 id: max_e_id + 1,
                 from: parseInt(from),
                 to: parseInt(to),
@@ -1542,12 +1542,12 @@ for (node in nodes._data)
             g.connect(from,to);
             
          }
-        if (edgesf.length == 0) {
+        if (fg_edges.length == 0) {
             max_e_id = -1;
         } else {
-            max_e_id = Math.max(...Object.keys(edgesf._data));
+            max_e_id = Math.max(...Object.keys(fg_edges._data));
         }
-        let var_node =nodesf.get(parseInt(variab));
+        let var_node =fg_nodes.get(parseInt(variab));
         let title="<table><thead><tr><th></th>"
         for (const index in var_node.domain)
             title+="<th>"+var_node.domain[index]+"</th>"
@@ -1559,7 +1559,7 @@ for (node in nodes._data)
             title+="<td></td>"
         title+="</tr>\n</tbody></table>"
 
-        edgesf.add({
+        fg_edges.add({
             id: max_e_id + 1,
             from: parseInt(from),
             to: parseInt(variab),
@@ -1583,17 +1583,17 @@ function create_factor_table(node_id) {
     let str;
     if (node.connections.length == 0) {
             str =  node.potential(0);
-            let nodef = nodesf.get(node_id)
+            let nodef = fg_nodes.get(node_id)
             table += "<th>"+nodef.label+"</th></tr></thead><tbody><tr><td>" + str + "</td></tr>";
     } else {
         let node_from;
         for (const i in node.connections) {
-            node_from=nodesf.get(node.connections[i].name)
+            node_from=fg_nodes.get(node.connections[i].name)
             let lab=node_from.label
             node_from_la = lab.split("\n")
             table += "<th>" + node_from_la[0] + "</th>";
         }
-        let nodef = nodesf.get(node_id)
+        let nodef = fg_nodes.get(node_id)
         table += "<th>"+nodef.label+"</th></tr></thead><tbody>";
         let prob = generate_index_arrays_factor(node_id);
         for (const p in prob) {
