@@ -14,10 +14,10 @@ var factor_graph; // Factor Graph
 let round=0 // belief propagation round
 let cur_marginals; // current marginals
 let last_marginals; // previous marginals
-let all_fg_nodes = {} // 
-let senders
-let sender
-let next_dests
+let all_fg_nodes = {} // array of nodes of factor_graph
+let sender_nodes // list of nodes scheduled to send a message
+let next_sender // next node scheduled to send a message
+let next_dests  // next nodes scheduled to receive a message
 let old_edge_label
 let old_edge_id
 let already_selected_node
@@ -924,6 +924,12 @@ $("#step_one_round").click(function() {
 });
 
 $("#run_to_convergence").click(function() {
+    /*
+    loop until max_iterations=10000 that propagates
+    messages from variables to factors and vice-versa, using parallel message passing.
+    The method used is described in the book at
+    http://web4.cs.ucl.ac.uk/staff/D.Barber/textbook/091117.pdf from page 88.
+    */
     $('#start').attr('disabled',true)
     let old_round=round
     while (epsilon>1e-5 && round<=10000)
@@ -1264,9 +1270,9 @@ class FactorGraph
             }
         let vars = all_fg_nodes.filter(node=> node instanceof Variable)
         let fs = all_fg_nodes.filter(node=>node instanceof Factor)
-        senders = fs.concat(vars)
-        sender=senders.shift()
-        next_dests=[...sender.connections]
+        sender_nodes = fs.concat(vars)
+        next_sender=sender_nodes.shift()
+        next_dests=[...next_sender.connections]
         last_marginals = this.get_marginals()
 
     }
@@ -1279,24 +1285,24 @@ class FactorGraph
         {
             do
             {
-                if (senders.length==0)
+                if (sender_nodes.length==0)
                 {
                     round+=1
                     $("#round").text("Round "+round)
                     let vars = all_fg_nodes.filter(node=> node instanceof Variable)
                     let fs = all_fg_nodes.filter(node=>node instanceof Factor)
-                    senders = fs.concat(vars)
+                    sender_nodes = fs.concat(vars)
                 }
                 else
-                    sender=senders.shift()
-                next_dests = [...sender.connections]
+                    next_sender=sender_nodes.shift()
+                next_dests = [...next_sender.connections]
             }
             while (next_dests.length==0)
         }
 
         let dest=next_dests.shift()
-        let value = sender.create_message(dest)
-        let msg =new  Mu(sender, value)
+        let value = next_sender.create_message(dest)
+        let msg =new  Mu(next_sender, value)
         dest.propagate(round, msg)
         cur_marginals = this.get_marginals()
         for (const var_n in cur_marginals)
@@ -1319,65 +1325,6 @@ class FactorGraph
 
         }
     }
-
-
-    calculate_marginals(max_iterations, tol)
-        /*
-        This is the main method of the implementation and consists in a loop until max_iterations that propagates
-        messages from variables to factors and vice-versa, using parallel message passing.
-        The method used is described in the book at
-        http://web4.cs.ucl.ac.uk/staff/D.Barber/textbook/091117.pdf from page 88.
-        */
-    {
-        let step = 0
-        let epsilons = [1]
-        for (const node of Object.values(this.nodes))
-            node.mailbox={}
-        let cur_marginals = this.get_marginals()
-
-        for (node of Object.values(this.nodes))
-            if (node instanceof Variable)
-            {
-                let message = new Mu(node, ones(node.size))
-                for (const dest of node.connections)
-                    dest.propagate(step, message)
-            }
-        
-        while ((step < max_iterations) && tol < epsilons[epsilons.length-1])
-        {
-            step += 1
-            let last_marginals = cur_marginals
-            let vars = Object.values(this.nodes).filter(node=> node instanceof Variable)
-            let fs = Object.values(this.nodes).filter(node=>node instanceof Factor)
-            let senders = fs.concat(vars)
-            for (const sender of senders)
-            {
-                    let next_dests = sender.connections
-                for (const dest of next_dests)
-                {
-                    let value = sender.create_message(dest)
-                    let msg =new  Mu(sender, value)
-                    dest.propagate(step, msg)
-                }
-            }
-            cur_marginals = this.get_marginals()
-            for (const var_n in cur_marginals)
-            {
-                let var_node =fg_nodes.get(var_n);
-                let a = var_node['label'].split("\n");
-                let node_marg=cur_marginals[parseInt(var_n)]
-                let marginals=node_marg.mapElems(x=>x.toFixed(2))
-                let marg_arr=marginals.toNestedArray()
-                let new_lab=a[0]+"\n["+marg_arr+"]"
-                fg_nodes.update([{id: var_n, label: new_lab}]);
-
-            }
-        }
-return epsilons;
-
-    }
-
-
 
     add(node)
     {
