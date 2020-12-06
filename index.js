@@ -9,6 +9,7 @@ let fg_network // factor graph network
 let fg_nodes = new vis.DataSet([]); // set of nodes of the factor graph vis.js object
 let fg_edges = new vis.DataSet([]); // set of edges of the factor graph vis.js object
 var factor_graph; // Factor Graph
+let already_selected_node // variable used to draw edges: it contains the source node
 
 /* global variables for keeping the state among successive inference steps */
 let round=0 // belief propagation round
@@ -18,14 +19,21 @@ let all_fg_nodes = {} // array of nodes of factor_graph
 let sender_nodes // list of nodes scheduled to send a message
 let next_sender // next node scheduled to send a message
 let next_dests  // next nodes scheduled to receive a message
-let old_edge_label
+
+/* variables for saving the message associated to an edge before applying the bold style
+to highlight the message */
+let old_edge_label 
 let old_edge_id
-let already_selected_node
-let epsilon
+
+let epsilon // the sum of the absolute difference of the components of two marginals
+
+
 
 activate_interactions()
 
-function delete_node(node_id) {
+function delete_node(node_id) 
+/* remove a node from the vis.js graph */
+{
     let to_edges = get_to_edges_from_node(node_id);
     let from_edges = get_from_edges_to_node(node_id);
     for (const e in to_edges) {
@@ -37,7 +45,9 @@ function delete_node(node_id) {
     nodes.remove(node_id);
 }
 
-function delete_edge(edge_id) {
+function delete_edge(edge_id) 
+/* remove an edge from the vis.js graph */
+{
     let edge = edges.get(edge_id);
     let node_id = edge.from;
     let to_id = edge.to;
@@ -50,7 +60,9 @@ function delete_edge(edge_id) {
     edges.remove(edge_id);
 }
 
-function update_probabilities(node_id) {
+function update_probabilities(node_id) 
+/* updates the probability of a node in the vis.js graph */
+{
     let node = nodes.get(node_id);
     let new_table = [];
     let index_arrays = generate_index_arrays(node_id);
@@ -1394,6 +1406,7 @@ class FactorGraph
     }
 }
 function compare_marginals(marginal_1, marginal_2)
+/* computes the sum of the absolute difference of the components of two marginals */
 {
     let sum=0
     for (const n in marginal_1)
