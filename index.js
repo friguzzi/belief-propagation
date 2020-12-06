@@ -31,13 +31,12 @@ let epsilon // the sum of the absolute difference of the components of two margi
 
 activate_interactions()
 
+/* ---- functions for interaction ---- */
 
-function hide_error_success() {
-    $("#error_dialog").hide();
-    $("#success").hide();
-}
 
-$("#button_new").click(function() {
+$("#button_new").click(function() 
+/* button new */
+{
     nodes.clear();
     edges.clear();
     network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
@@ -54,8 +53,6 @@ $("#button_new").click(function() {
     $("#div_query").hide();
     $("#help_message").hide();
     $("#div_create_nodes").hide();
-
-    
 
 });
 
@@ -192,95 +189,11 @@ $("#button_save_file").click(function() {
 
 });
 
-function load_network(xml){
-    /*
-    Function that parses the XMLBIF file and generates the corresponding network
-     */
-    nodes.clear();
-    edges.clear();
-    network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
 
-    let center_x = 0;
-    let center_y = 0;
-
-    let variables = xml.find('VARIABLE');
-    variables.each(function(i){
-        let variable = {};
-
-        variable.id = i;
-        variable.name = $(this).find('NAME').text();
-
-        variable.domain = [];
-        let domain = $(this).find('OUTCOME');
-        domain.each(function(){
-            let value = $(this).text();
-            variable.domain.push(value);
-        });
-
-        let pos = {};
-        let position = $(this).find('PROPERTY').text();
-        position = position.split("(")[1];
-        position = position.split(",");
-        pos.x = position[0];
-        position = position[1].split(" ").join("");
-        pos.y = position.split(")")[0];
-
-        let x, y;
-        if (center_x === 0 && center_y === 0) {
-            x = 0;
-            y = 0;
-            center_x = pos.x;
-            center_y = pos.y;
-        } else {
-            x = pos.x - center_x;
-            y = pos.y - center_y;
-        }
-
-        nodes.add({
-            id: variable.id,
-            label: variable.name,
-            x: x,
-            y: y,
-            domain: variable.domain,
-            color: {background: "", border: "black"},
-        });
-    });
-
-    let edge_counter = 0;
-    let probabilities = xml.find('DEFINITION');
-    probabilities.each(function(){
-        let target_node_id = get_id_from_label_node($(this).find('FOR').text());
-
-        let given_nodes_id = [];
-        $(this).find('GIVEN').each(function(){
-            let given = $(this).text();
-            let given_node_id = get_id_from_label_node(given);
-            given_nodes_id.push(given_node_id);
-        });
-
-        for (const from in given_nodes_id) {
-            edges.add({
-                id: edge_counter,
-                from: given_nodes_id[from],
-                to: target_node_id,
-                arrows: 'to'
-            });
-            edge_counter++;
-        }
-
-        let probability_table = $(this).find('TABLE').text().split(" ");
-
-        let node = nodes._data[target_node_id];
-        node.probability = {};
-        node.probability.given = given_nodes_id;
-        node.probability.table = probability_table;
-    });
-    activate_interactions()
-}
 
 function activate_interactions()
 {
-network.on( 'click', function(properties) {
+    network.on( 'click', function(properties) {
 	let option_selected = $("#name_choice").text();
 
 	hide_error_success();
@@ -323,10 +236,11 @@ network.on( 'click', function(properties) {
             {
                 already_selected_node=nodes.get(properties.nodes[0]).id;
             }
-
-});
+    });
 }
-$("#button_create_node").click(function() {
+
+$("#button_create_node").click(function() 
+{
     $("#error_dialog").hide();
     $("#success").hide();
     $("#div_create_edge").hide();
@@ -671,7 +585,7 @@ $("#start").click(function() {
         fg_nodes.update([{id: var_n, label: new_lab, 'title':title}]);
 
     }    
-    g.start()
+    factor_graph.start()
     for (const n of all_fg_nodes)
         if (n instanceof Factor)
         {
@@ -687,24 +601,15 @@ $("#start").click(function() {
     fg_network.on("hoverEdge", function (params) {
     })
 });
-function observe(graph, observations)
+function hide_error_success() 
+/* hides error and success dialogues */
 {
-    for (o in observations)
-    {
-        if (observations[o]>=0)
-        {
-            graph.set_evidence(o, observations[o])
-        }
-    }
+    $("#error_dialog").hide();
+    $("#success").hide();
 }
-function ones(size)
-{
-    return nd.tabulate([size], (i) => 1);
-}
-function zeros(size)
-{
-    return nd.tabulate([size], (i) => 0);
-}
+/* ---- end of functions for interaction ---- */
+
+
 class Node 
 /* class encoding a node of a factor graph */
 {
@@ -720,6 +625,7 @@ class Node
         this.mailbox = {}
         this.connections = []
     }
+
     append(dest_node){
         /*
         With this method, we update the connections list of this node and the destination node.
@@ -912,6 +818,7 @@ class Factor extends Node
 }
 
 class Mu
+/* class encoding a message (the message is stored after normalization) */
 {
 
     constructor(source_node, value)
@@ -967,6 +874,7 @@ class FactorGraph
     }
 
     step()
+    /* perform one inference step */
     {
         fg_edges.update({id:old_edge_id,label:old_edge_label})
 
@@ -1094,13 +1002,26 @@ function compare_marginals(marginal_1, marginal_2)
     return sum
 }
 
+function observe(graph, observations)
+/* function for making observations on a factor graph */
+{
+    for (o in observations)
+    {
+        if (observations[o]>=0)
+        {
+            graph.set_evidence(o, observations[o])
+        }
+    }
+}
+
 function build_graph()
+/* function for building the factor graph from the Bayesian network stored in the vis.js network */
 {
     fg_nodes.clear();
     fg_edges.clear();
     fg_network = new vis.Network(container, {nodes: fg_nodes, edges: fg_edges}, { interaction:{hover:true}});
     single_factors = {}
-    g = new FactorGraph()
+    fg = new FactorGraph()
     let max_id_nodes;
     if (nodes.length == 0) {
         max_id_nodes = -1;
@@ -1108,7 +1029,7 @@ function build_graph()
         max_id_nodes = Math.max(...Object.keys(nodes._data));
     }
     factors = []
-for (node in nodes._data)
+    for (node in nodes._data)
     {
         node_name = nodes._data[node]['label']
         node_domain = nodes._data[node]['domain']
@@ -1124,7 +1045,7 @@ for (node in nodes._data)
         });
 
 
-        g.add(node_variable)
+        fg.add(node_variable)
         factor_name = 'f_' + node
         probability_table = nodes._data[node]['probability']['table']
         probabilities = nd.array(probability_table)
@@ -1146,7 +1067,7 @@ for (node in nodes._data)
             font: { multi: true }
         });
         factor = new Factor(node_id, probabilities)
-        g.add(factor)
+        fg.add(factor)
         factors.push({'factor':factor, 'var': node, 'given': node_given, 'factor_name': factor_name})
     }
     for (factor of factors)
@@ -1186,9 +1107,9 @@ for (node in nodes._data)
                 title: title,
                 font: { multi: true }
                 });
-            g.connect(from,to);
+            fg.connect(from,to);
             
-         }
+        }
         if (fg_edges.length == 0) {
             max_e_id = -1;
         } else {
@@ -1214,16 +1135,15 @@ for (node in nodes._data)
             title: title,
             font: { multi: true }
         });
-     g.connect(from,factor['var'])
-      }
-
-    return g
-    
-    
+        fg.connect(from,factor['var'])
+    }
+    return fg
 }
 
 
-function create_factor_table(node_id) {
+function create_factor_table(node_id) 
+/* create the table of a factor identified by node_id */
+{
     let node = all_fg_nodes[node_id];
     let table = "<table>";
     table += "<thead id='thead'><tr>";
@@ -1260,7 +1180,9 @@ function create_factor_table(node_id) {
 }
 
 
-function create_dynamic_probability_table(node_id) {
+function create_dynamic_probability_table(node_id) 
+/* create the probability table for the family of node_id in the Bayesian network */
+{
     let node = nodes.get(node_id);
     let table = "<div id='dynamic_table_div'><table id='dynamic_table' class='table table-hover mt-4'>";
     table += "<thead id='thead'><tr class='table-primary text-center'>";
@@ -1404,7 +1326,8 @@ function create_dynamic_observations() {
 }
 
 
-/* helper functions */
+/* ----- helper functions ----- */
+
 function delete_node(node_id) 
 /* remove a node from the vis.js graph */
 {
@@ -1724,3 +1647,102 @@ function get_from_edges_to_node(node_id)
     }
     return ret_edges;
 }
+
+function load_network(xml){
+    /*
+    Function that parses the XMLBIF file and generates the corresponding network
+     */
+    nodes.clear();
+    edges.clear();
+    network = new vis.Network(container, {nodes: nodes, edges: edges}, {});
+
+    let center_x = 0;
+    let center_y = 0;
+
+    let variables = xml.find('VARIABLE');
+    variables.each(function(i){
+        let variable = {};
+
+        variable.id = i;
+        variable.name = $(this).find('NAME').text();
+
+        variable.domain = [];
+        let domain = $(this).find('OUTCOME');
+        domain.each(function(){
+            let value = $(this).text();
+            variable.domain.push(value);
+        });
+
+        let pos = {};
+        let position = $(this).find('PROPERTY').text();
+        position = position.split("(")[1];
+        position = position.split(",");
+        pos.x = position[0];
+        position = position[1].split(" ").join("");
+        pos.y = position.split(")")[0];
+
+        let x, y;
+        if (center_x === 0 && center_y === 0) {
+            x = 0;
+            y = 0;
+            center_x = pos.x;
+            center_y = pos.y;
+        } else {
+            x = pos.x - center_x;
+            y = pos.y - center_y;
+        }
+
+        nodes.add({
+            id: variable.id,
+            label: variable.name,
+            x: x,
+            y: y,
+            domain: variable.domain,
+            color: {background: "", border: "black"},
+        });
+    });
+
+    let edge_counter = 0;
+    let probabilities = xml.find('DEFINITION');
+    probabilities.each(function(){
+        let target_node_id = get_id_from_label_node($(this).find('FOR').text());
+
+        let given_nodes_id = [];
+        $(this).find('GIVEN').each(function(){
+            let given = $(this).text();
+            let given_node_id = get_id_from_label_node(given);
+            given_nodes_id.push(given_node_id);
+        });
+
+        for (const from in given_nodes_id) {
+            edges.add({
+                id: edge_counter,
+                from: given_nodes_id[from],
+                to: target_node_id,
+                arrows: 'to'
+            });
+            edge_counter++;
+        }
+
+        let probability_table = $(this).find('TABLE').text().split(" ");
+
+        let node = nodes._data[target_node_id];
+        node.probability = {};
+        node.probability.given = given_nodes_id;
+        node.probability.table = probability_table;
+    });
+    activate_interactions()
+}
+
+function ones(size)
+/* returns an array of 1 of size size */
+{
+    return nd.tabulate([size], (i) => 1);
+}
+function zeros(size)
+/* returns an array of 0 of size size */
+{
+    return nd.tabulate([size], (i) => 0);
+}
+
+/* ----- end of helper functions ----- */
