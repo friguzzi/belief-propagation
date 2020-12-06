@@ -607,9 +607,157 @@ function hide_error_success()
     $("#error_dialog").hide();
     $("#success").hide();
 }
+function create_dynamic_probability_table(node_id) 
+/* create the probability table for the family of node_id in the Bayesian network to be filled by the user */
+{
+    let node = nodes.get(node_id);
+    let table = "<div id='dynamic_table_div'><table id='dynamic_table' class='table table-hover mt-4'>";
+    table += "<thead id='thead'><tr class='table-primary text-center'>";
+    let str;
+    if (node.probability.given.length == 0) {
+        for (const i in node.domain) {
+            str = node.label + " (" + node.domain[i] + ")";
+            table += "<th><strong>" + str + "</strong></th>";
+        }
+        table += "</tr></thead><tbody>";
+        table += "<tr class='table-dark text-center'>";
+        for (let i = 0; i < node.domain.length; i++) {
+            str = "<input name=" + i + " style='text-align: center' value=" + node.probability.table[i] + ">";
+            table += "<td>" + str + "</td>";
+        }
+    } else {
+        let node_from;
+        for (const i in node.probability.given) {
+            node_from = nodes.get(node.probability.given[i]);
+            table += "<th><strong>" + node_from.label + "</strong></th>";
+        }
+        for (const i in node.domain) {
+            str = node.label + " (" + node.domain[i] + ")";
+            table += "<th><strong>" + str + "</strong></th>";
+        }
+        table += "</tr></thead><tbody>";
+        let prob = generate_index_arrays(node.id);
+        let skipper = node.domain.length - 1;
+        for (const p in prob) {
+            if (skipper == node.domain.length - 1) {
+                table += "<tr class='table-dark text-center'>";
+                let index = prob[p];
+                index.pop();
+                for (const element in index) {
+                    let node_id = node.probability.given[element];
+                    let node_id_domain = nodes.get(node_id).domain;
+                    str = node_id_domain[index[element]];
+                    table += "<td><strong>" + str + "</strong></td>";
+                }
+                for (const d in node.domain) {
+                    index.push(parseInt(d));
+                    let prob_value = get_probability(node.id, index);
+                    let name = index.join(',');
+                    table += "<td><input name=" + name + " style='text-align: center' value=" + prob_value + "></td>";
+                    index.pop();
+                }
+            }
+            skipper--;
+            if (skipper == -1) {
+                skipper = node.domain.length - 1;
+            }
+        }
+    }
+    table += "</tbody></table></div>";
+    let button = '<button id="button_update_probabilities" type="button" class="btn btn-primary mt-3">Update Probabilities</button>';
+    $("#div_probability_table").html(table);
+    $("#div_probability_table").append(button);
+    $("#button_update_probabilities").click(function() {
+        check_and_update_probabilities(node_id)
+    });
+}
+
+function check_and_update_probabilities(node_id) 
+/* function for checking the consistency of CPTs inserted by the user */
+{
+    let not_valid = 0;
+    $("#dynamic_table > tbody").find('tr').each(function() {
+        let values = [];
+        $(this).find('input').each(function() {
+            values.push(this.value);
+        });
+        let tot = 0;
+        for (let i = 0; i < values.length; i++) {
+            tot += parseFloat(values[i]);
+        }
+        if (tot !== 1)
+            not_valid += 1;
+    });
+    if (not_valid == 0) {
+        $("#dynamic_table > tbody").find('tr').each(function() {
+            $(this).find('input').each(function() {
+                let value = this.value;
+                let array = $(this).attr('name').split(',');
+                set_probability(node_id, array, parseFloat(value));
+            });
+        });
+        $("#success").show();
+        $("#error_dialog").hide();
+    } else {
+        $("#success").hide();
+        $("#error_dialog").show();
+    }
+}
+
+function create_dynamic_observations() 
+/* function for creating the table for inserting observations by the user */
+{
+    function get_html_group(content, node_id) {
+        return '<div id="' + node_id + '" class="btn-group btn-group-toggle" data-toggle="buttons">' + content + '</div>';
+    }
+
+    function get_html_row(content) {
+        return '<div class="row">' + content + '</div>';
+    }
+
+    function get_html_col_6(content) {
+        return '<div class="col-6">' + content + '</div>';
+    }
+
+    function get_html_col_3(content) {
+        return '<div class="col-3">' + content + '</div>';
+    }
+
+    function get_html_name(node_name) {
+        return '<div class="form-check form-check-inline"><label class="form-check-label">' + node_name + ': ' + '</label></div>'
+    }
+
+    function get_html_option(option, label) {
+        return '<label class="btn btn-secondary"><input name="options" type="radio" value="' + option + '">' + label + '</label>';
+    }
+
+    function get_html_choose() {
+        return '<label class="btn btn-danger active"><input name="options" type="radio" value="-1">NO</label>';
+    }
+
+    let html_out = "";
+
+    let node;
+    for (const n in nodes._data) {
+        let html = "";
+        node = nodes.get(n);
+        let name = get_html_name(node.label);
+        let options = "";
+        for (const d in node.domain) {
+            options += get_html_option(d, node.domain[d]);
+        }
+        let choose = get_html_choose();
+        let opt = get_html_group(options + choose, node.id);
+        html += get_html_col_3(name);
+        html += get_html_col_6(opt);
+        html_out += get_html_row(html);
+    }
+
+    $("#observations").html(html_out);
+}
 /* ---- end of functions for interaction ---- */
 
-
+/* ---- classes for encoding the factor graph, the nodes and the messages ----- */
 class Node 
 /* class encoding a node of a factor graph */
 {
@@ -924,17 +1072,9 @@ class FactorGraph
     }
 
     add(node)
+    /* adding a node to the graph */
     {
         this.nodes[node.name] = node
-    }
-
-    append(source_node_name, dest_node)
-    {
-        dnn = dest_node.name
-        if (!(this.nodes.get(dnn, 0)))
-            this.nodes[dnn] = dest_node
-        this.nodes[source_node_name].push(this.nodes[dnn])
-        return this
     }
 
     connect(name1, name2)
@@ -990,6 +1130,8 @@ class FactorGraph
         return marg
     }
 }
+/* ---- end of classes for encoding the factor graph, the nodes and the messages ----- */
+
 function compare_marginals(marginal_1, marginal_2)
 /* computes the sum of the absolute difference of the components of two marginals */
 {
@@ -1180,150 +1322,7 @@ function create_factor_table(node_id)
 }
 
 
-function create_dynamic_probability_table(node_id) 
-/* create the probability table for the family of node_id in the Bayesian network */
-{
-    let node = nodes.get(node_id);
-    let table = "<div id='dynamic_table_div'><table id='dynamic_table' class='table table-hover mt-4'>";
-    table += "<thead id='thead'><tr class='table-primary text-center'>";
-    let str;
-    if (node.probability.given.length == 0) {
-        for (const i in node.domain) {
-            str = node.label + " (" + node.domain[i] + ")";
-            table += "<th><strong>" + str + "</strong></th>";
-        }
-        table += "</tr></thead><tbody>";
-        table += "<tr class='table-dark text-center'>";
-        for (let i = 0; i < node.domain.length; i++) {
-            str = "<input name=" + i + " style='text-align: center' value=" + node.probability.table[i] + ">";
-            table += "<td>" + str + "</td>";
-        }
-    } else {
-        let node_from;
-        for (const i in node.probability.given) {
-            node_from = nodes.get(node.probability.given[i]);
-            table += "<th><strong>" + node_from.label + "</strong></th>";
-        }
-        for (const i in node.domain) {
-            str = node.label + " (" + node.domain[i] + ")";
-            table += "<th><strong>" + str + "</strong></th>";
-        }
-        table += "</tr></thead><tbody>";
-        let prob = generate_index_arrays(node.id);
-        let skipper = node.domain.length - 1;
-        for (const p in prob) {
-            if (skipper == node.domain.length - 1) {
-                table += "<tr class='table-dark text-center'>";
-                let index = prob[p];
-                index.pop();
-                for (const element in index) {
-                    let node_id = node.probability.given[element];
-                    let node_id_domain = nodes.get(node_id).domain;
-                    str = node_id_domain[index[element]];
-                    table += "<td><strong>" + str + "</strong></td>";
-                }
-                for (const d in node.domain) {
-                    index.push(parseInt(d));
-                    let prob_value = get_probability(node.id, index);
-                    let name = index.join(',');
-                    table += "<td><input name=" + name + " style='text-align: center' value=" + prob_value + "></td>";
-                    index.pop();
-                }
-            }
-            skipper--;
-            if (skipper == -1) {
-                skipper = node.domain.length - 1;
-            }
-        }
-    }
-    table += "</tbody></table></div>";
-    let button = '<button id="button_update_probabilities" type="button" class="btn btn-primary mt-3">Update Probabilities</button>';
-    $("#div_probability_table").html(table);
-    $("#div_probability_table").append(button);
-    $("#button_update_probabilities").click(function() {
-        check_and_update_probabilities(node_id)
-    });
-}
 
-function check_and_update_probabilities(node_id) {
-    let not_valid = 0;
-    $("#dynamic_table > tbody").find('tr').each(function() {
-        let values = [];
-        $(this).find('input').each(function() {
-            values.push(this.value);
-        });
-        let tot = 0;
-        for (let i = 0; i < values.length; i++) {
-            tot += parseFloat(values[i]);
-        }
-        if (tot !== 1)
-            not_valid += 1;
-    });
-    if (not_valid == 0) {
-        $("#dynamic_table > tbody").find('tr').each(function() {
-            $(this).find('input').each(function() {
-                let value = this.value;
-                let array = $(this).attr('name').split(',');
-                set_probability(node_id, array, parseFloat(value));
-            });
-        });
-        $("#success").show();
-        $("#error_dialog").hide();
-    } else {
-        $("#success").hide();
-        $("#error_dialog").show();
-    }
-}
-
-function create_dynamic_observations() {
-    function get_html_group(content, node_id) {
-        return '<div id="' + node_id + '" class="btn-group btn-group-toggle" data-toggle="buttons">' + content + '</div>';
-    }
-
-    function get_html_row(content) {
-        return '<div class="row">' + content + '</div>';
-    }
-
-    function get_html_col_6(content) {
-        return '<div class="col-6">' + content + '</div>';
-    }
-
-    function get_html_col_3(content) {
-        return '<div class="col-3">' + content + '</div>';
-    }
-
-    function get_html_name(node_name) {
-        return '<div class="form-check form-check-inline"><label class="form-check-label">' + node_name + ': ' + '</label></div>'
-    }
-
-    function get_html_option(option, label) {
-        return '<label class="btn btn-secondary"><input name="options" type="radio" value="' + option + '">' + label + '</label>';
-    }
-
-    function get_html_choose() {
-        return '<label class="btn btn-danger active"><input name="options" type="radio" value="-1">NO</label>';
-    }
-
-    let html_out = "";
-
-    let node;
-    for (const n in nodes._data) {
-        let html = "";
-        node = nodes.get(n);
-        let name = get_html_name(node.label);
-        let options = "";
-        for (const d in node.domain) {
-            options += get_html_option(d, node.domain[d]);
-        }
-        let choose = get_html_choose();
-        let opt = get_html_group(options + choose, node.id);
-        html += get_html_col_3(name);
-        html += get_html_col_6(opt);
-        html_out += get_html_row(html);
-    }
-
-    $("#observations").html(html_out);
-}
 
 
 /* ----- helper functions ----- */
