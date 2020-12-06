@@ -5,10 +5,10 @@ let nodes = new vis.DataSet([]); // set of nodes of the Bayesian network
 let edges = new vis.DataSet([]); // set of edges of the Bayesian network
 let container = document.getElementById('graph');
 let network = new vis.Network(container, {nodes: nodes, edges: edges}, {}); // vis.js networks
-let networkf
-let fg_nodes = new vis.DataSet([]);
-let fg_edges = new vis.DataSet([]);
-let round=0
+let fg_network // factor graph network
+let fg_nodes = new vis.DataSet([]); // set of nodes of the factor graph
+let fg_edges = new vis.DataSet([]); // set of edges of the factor graph
+let round=0 // belief propagation round
 let cur_marginals;
 let last_marginals;
 var g;
@@ -985,9 +985,9 @@ $("#start").click(function() {
     $("#step").removeAttr("disabled");
     $("#step_one_round").removeAttr("disabled");
     $("#run_to_convergence").removeAttr("disabled");
-    networkf.on("hoverNode", function (params) {
+    fg_network.on("hoverNode", function (params) {
     })
-    networkf.on("hoverEdge", function (params) {
+    fg_network.on("hoverEdge", function (params) {
     })
 });
 function observe(graph, observations)
@@ -1451,7 +1451,7 @@ function build_graph()
 {
     fg_nodes.clear();
     fg_edges.clear();
-    networkf = new vis.Network(container, {nodes: fg_nodes, edges: fg_edges}, { interaction:{hover:true}});
+    fg_network = new vis.Network(container, {nodes: fg_nodes, edges: fg_edges}, { interaction:{hover:true}});
     single_factors = {}
     g = new FactorGraph()
     let max_id_nodes;
