@@ -863,7 +863,8 @@ class Variable extends Node
                 }
                 let marg_array=product_output.toNestedArray()
                 let sum=marg_array.reduce( (x,y) => x+y ) 
-                return product_output.mapElems((x)=>x/sum)
+                let marg=product_output.mapElems((x)=>x/sum)
+                return marg
         
             }
             else
@@ -1192,6 +1193,7 @@ function build_graph()
         probability_table = nodes._data[node]['probability']['table']
         probabilities = nd.array(probability_table)
         shape = []
+        node_given.sort()
         for (n of node_given)
         {
             n_domain = nodes._data[n]['domain']
