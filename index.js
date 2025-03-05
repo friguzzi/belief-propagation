@@ -794,6 +794,10 @@ class Node
         {
             this.mailbox[step_number].push(mu);
         }
+        if (this instanceof Variable)
+        {
+            this.incoming[mu.source_node.name]=mu
+        }
         let edge_id=get_edge_id_from_endpoints(this.name,mu.source_node.name)
         let label=fg_edges.get(edge_id).label
         let title=fg_edges.get(edge_id).title
@@ -835,10 +839,12 @@ class Variable extends Node
 {
     size;
     observed_state;
+    incoming;
     constructor(name, size){
         super(name)
         this.size = size
         this.observed_state = null
+        this.incoming={}
     }
     marginal(){
         /*
@@ -855,7 +861,13 @@ class Variable extends Node
         else
             if (Object.keys(this.mailbox).length)
             {
-                let mus = this.mailbox[Math.max(...Object.keys(this.mailbox))]
+                let inc= Object.keys(this.incoming)
+                let mus=[]
+                for (const i of inc)
+                {
+                    mus.push(this.incoming[i])
+                }
+
                 let product_output=ones(this.size)
                 for (const mu of mus)
                 {
